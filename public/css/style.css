@@ -1,0 +1,215 @@
+p {
+    font-size: 20px;
+}
+
+a {
+    text-decoration: none;
+    color: black;
+    cursor: pointer;
+}
+
+
+a:hover {
+    text-decoration: none;
+    color: black;
+}
+
+a:active {
+    color: black;
+    text-decoration:none;
+}
+
+a:visited {
+    color: black;
+    text-decoration:none;
+}
+
+
+li {
+    list-style-type: none;
+}
+
+header {
+    background-color: greenyellow;
+    height:60px;
+    width: 100%;
+    min-width: 750px;
+}
+
+main {
+    background-color: white;
+    margin: auto;
+    width: 800px;
+    min-height: 500px;
+}
+
+footer {
+    margin: -30px auto;
+    text-align: center;
+    width: 800px;
+    height: 50px;
+    padding: 0 20px;
+}
+
+
+
+
+#container {
+    background-color: white;
+    margin: auto;
+    width: 800px;
+    height: 100%;
+
+}
+
+#imgLogo {
+    width: 50px;
+    height: 50px;
+    display: inline-block;
+}
+
+#errorLab {
+    font-size: 25px;
+    color: red;
+}
+
+#errorLabLog {
+    font-size: 25px;
+    color: red;
+}
+
+#logo {
+    font-family: franklin gothic medium, serif;
+    font-size: 50px;
+    margin-top: -20px;
+    margin-left: 20px;
+    display: inline-block;
+    width: 400px;
+}
+
+#formWelcome {
+    font-family: franklin gothic medium, serif;
+    text-align: center;
+}
+
+#logo-block {
+    display: inline-block;
+    width: 29%;
+    background-color: greenyellow;
+}
+
+#bigWelcome {
+    font-size: 60px;
+}
+
+
+#containerHeaderBlock {
+    position: relative;
+    display: inline-block;
+    min-width: 200px;
+    width: 79%;
+    border-left-style: solid;
+    border-color: greenyellow;
+    background-color: RGBA(173, 255, 47, 0.2);
+}
+
+#containerHeader {
+
+    min-width: 200px;
+    height: 250px;
+    width: 100%;
+    display: inline-block;
+}
+
+#menuHeader {
+    font-family: franklin gothic medium, serif;
+    font-size: 20px;
+    margin-top: -20px;
+    min-width: 100px;
+    height: 250px;
+    width: 20%;
+    float: left;
+
+}
+
+
+#viewContentHeader {
+    margin-top: 30px;
+    display: block;
+}
+
+#navigation {
+    width: 70%;
+    text-align: right;
+    display: inline-block;
+}
+
+#formLogin {
+    text-align: center;
+}
+
+.but {
+    text-align: center;
+    font-family: franklin gothic medium, serif;
+    font-size: 45px;
+    padding: 10px;
+    margin-top: -20px;
+    height: 80px;
+    width: 180px;
+    display: inline-block;
+    background-color: greenyellow;
+}
+
+.but:hover {
+    background-color: red;
+    height: 80px;
+    cursor: pointer;
+}
+
+
+.menuName {
+    cursor: pointer;
+    color: black;
+}
+
+.menuName a {
+
+    text-decoration: none;
+}
+
+.menuName a:hover {
+    text-decoration: none;
+    color: greenyellow;
+}
+
+
+.menuName a:active {
+    text-decoration:none;
+}
+
+.menuName a:visited {
+    text-decoration:none;
+}
+
+
+
+.menuName:hover {
+    color: greenyellow;
+}
+
+.butMini {
+    text-align: center;
+    font-family: franklin gothic medium, serif;
+    font-size: 25px;
+    padding: 4px;
+    background-color: greenyellow;;
+    margin-top: -50px;
+    height: 40px;
+    width: 150px;
+    display: inline-block;
+}
+
+.butMini:hover {
+    background-color: red;
+    cursor: pointer;
+}
