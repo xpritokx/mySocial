@@ -2,6 +2,10 @@
 var UserDb = require('../dbmodels/user').User;
 var User = require('../models/User');
 var Admin = require('../models/Admin');
+var mongoose = require('mongoose');
+var multiparty = require('multiparty');
+var fs = require('fs');
+
 //var bodyParser = require('body-parser');
 
 admin = new Admin.Admin(6,5,4,3,2,1,0);
@@ -62,11 +66,22 @@ module.exports = function(app) {
         //console.log(req.params);
 
         if (req.session.user) {
-            res.send({val: true, userId: req.session.user});
+            res.send({
+                val: true,
+                userId: req.session.user
+            });
         } else {
             res.send({val: false});
         }
     });
+
+    app.post('/sendEmail', function(req,res){
+        console.log('Receive a POST request, EMAIL');
+        for (var key in req.body) {
+            console.log(key + ": " + req.body[key])
+        }
+    });
+
 
     //confirming user on the authorization
     app.post('/userIsValid', function(req,res){
@@ -91,6 +106,98 @@ module.exports = function(app) {
         res.redirect("/#main");
     });
 
+    /*
+
+    // changing avatar for users
+    app.route('/upload').get(function(req, res){
+        console.log("Image coming is get");
+        var length = 0;
+        req.on('data', function(chunk) {
+            // ничего не делаем с приходящими данными, просто считываем
+            length += chunk.length;
+            if (length > 50 * 1024 * 1024) {
+                res.statusCode = 413;
+                res.end("File too big");
+            }
+        }).on('end', function() {
+            res.end('ok');
+        });
+
+
+        //console.log(req.param);
+        //console.log(req.params);
+
+    });
+
+    // changing avatar for users
+    app.post('/upload', function(req, res){
+        console.log("Image is coming post");
+        var length = 0;
+        req.on('data', function(chunk) {
+            // ничего не делаем с приходящими данными, просто считываем
+            length += chunk.length;
+            if (length > 50 * 1024 * 1024) {
+                res.statusCode = 413;
+                res.end("File too big");
+            }
+        }).on('end', function(data) {
+            res.end('ok');
+        });
+        //console.log(req.body);
+    });
+
+    */
+
+    app.route('/upload').get(function(req, res) {
+        console.log("bla - bla - bla");
+    });
+
+    app.post('/upload', function(req, res){
+        console.log("i am here");
+        //console.log(req.body);
+        //console.log(req.body.name);
+        var form = new multiparty.Form();
+
+        form.parse(req, function(err, fields, files){
+            //res.send('Name : ' + fields.name);
+            //console.log(files.images[0].originalFilename);
+            var img = files.images[0];
+            fs.readFile(img.path, function(err, data) {
+                var path = "./public/images/" + img.originalFilename;
+                //console.log("our_db");
+                //console.log(UserDb.User);
+
+                fs.writeFile(path, data, function(err){
+                    if(err) {
+                        console.log(err);
+                    }
+                });
+
+                UserDb.update({_id: req.session.user}, {img: (path).slice(9)}, function(){
+                    console.log("Hi!");
+                    console.log({_id: req.session.name});
+                });
+                UserDb.find(function(err, users) {
+                    console.log(users);
+                    //users.update({_id: req.session.name}, {img: path});
+                    users.forEach(function(item) {
+                        console.log('Is here a POST request for _id ' + item._id);
+                        console.log('Is here a POST request for img ' + item.img);
+                    });
+                });
+
+                //console.log("user find = ",UserDb.find({_id: req.session.user}));
+                console.log("path = ", path);
+                console.log("iD userSession = ",req.session.user);
+
+
+                //res.send(path);
+                res.redirect('/#showUsers');
+            });
+        });
+
+        //res.send("Name: " + req.body.name);
+    });
 
     // output all users in JSON Format
     app.route('/userLog').get(function(req, res){
@@ -134,18 +241,20 @@ module.exports = function(app) {
     });
 
     //deleting user by id
-    app.delete('/users/:id', function(req, res, next){
+    app.delete('/users/:id', function(req, res){
         console.log('Receive a DELETE request for _id: ' + req.params.id);
-        UserDb.remove({_id: req.params.id}, function(err){
-            next(err);
-            res.send({_id: req.params.id})
+        console.log(req.params);
+        var id = req.params.id;
+        UserDb.remove({_id: id}, function(){
+            res.send({_id: id})
         });
     });
 
     //update user info by id
     app.put('/users/:id', function(req,res){
         console.log('Receive an UPDATE request for _id: ' + req.params.id);
-        UserDb.update({_id: req.params.id}, req.body, function(err){
+        console.log(req.params);
+        UserDb.update({_id: req.params.id}, req.body, function(){
             res.send({_id: req.params.id})
         });
     });

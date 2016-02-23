@@ -14,6 +14,10 @@ var schema = new Schema({
         required: true
     },
     email: String,
+    img: {
+        type: String,
+        defaults: 'images/question.png'
+    },
     birthday: {
         type: Date,
         default: Date.now
@@ -45,8 +49,6 @@ schema.virtual('password').set(function(password) {
 });
 
 schema.methods.checkPassword = function(password) {
-    //console.log("encr pas = ",this.encryptPassword(password));
-    //console.log("this pas = ",this.hashedPassword);
     return this.encryptPassword(password) == this.hashedPassword;
 };
 

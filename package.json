@@ -17,9 +17,12 @@
     "debug": "~2.2.0",
     "express": "^4.13.4",
     "express-session": "^1.13.0",
+    "formidable": "^1.0.17",
     "mongodb": "^2.1.7",
     "mongoose": "^4.4.3",
     "morgan": "~1.6.1",
+    "multiparty": "^4.1.2",
+    "nodemailer": "^2.2.1",
     "serve-favicon": "^2.3.0",
     "util": "^0.10.3"
   }

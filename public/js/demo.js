@@ -16,9 +16,51 @@
         return _.template($('#' + id).html());
     };
 
-    //--------------------
-    //-----FUNCTIONS------
-    //--------------------
+    //--------------------------------------------------------------------------
+    //-----FUNCTIONS-----------FUNCTIONS-----------FUNCTIONS-----------FUNCTIONS
+    //--------------------------------------------------------------------------
+
+
+    App.Functions.sendEmail = function() {
+        if (App.Properties.valid.get('userIsAuthorised')) {
+            $('#containerHeaderBlock').html('').show();
+            $('#signForSendEmailBut').show();
+
+            $('#posts').hide().html('');
+            $('#register-block').hide().html('');
+            $('#login-block').hide().html('');
+            $('#signBut').hide();
+            $('#regBut').hide();
+            sendEmailForm.render();
+        } else {
+            router.navigate('/connected_user/' + App.Properties.valid.get('userId'), {trigger: true});
+        }
+    };
+
+    App.Functions.showedUpdateButtons = function() {
+        if(App.Properties.valid.get('username') !== 'admin') {
+            $('.butMini').hide();
+        } else {
+            $('.butMini').show();
+            $('.butUpd').hide();
+        }
+    };
+
+    App.Functions.changeLogo = function() {
+        if (App.Properties.valid.get('userIsAuthorised')) {
+            $('#containerHeaderBlock').html('').show().append(template('uploadFile2'));
+            $('#signOutBut').show();
+
+            $('#posts').hide().html('');
+            $('#register-block').hide().html('');
+            $('#login-block').hide().html('');
+            $('#signBut').hide();
+            $('#regBut').hide();
+        } else {
+            router.navigate('/connected_user/' + App.Properties.valid.get('userId'), {trigger: true});
+        }
+    };
+
     App.Functions.showUsers = function() {
             if (App.Properties.valid.get('userIsAuthorised')) {
                 $('#posts').hide().html('');
@@ -30,7 +72,9 @@
                 $('#signOutBut').show();
                 $('#signBut').hide();
                 $('#regBut').hide();
+                console.log("Show users logname ", App.Properties.valid.get('username'));
                 App.Properties.userView.render();
+                App.Functions.showedUpdateButtons();
             } else {
                 router.navigate('#main');
             }
@@ -45,6 +89,8 @@
 
         regForm = new App.Views.RegisterPage({model: App.Properties.userCol});
 
+        sendEmailForm = new App.Views.SendEmailPage();
+
         loginForm = new App.Views.LoginPage();
 
         router = new App.Router;
@@ -52,15 +98,19 @@
 
 
     App.Functions.userIsValid = function(){
-        //setInterval(function() {
             App.Properties.valid.fetch({
                 success: function(response) {
-                    console.log("JSON val = ", response.toJSON().val);
-                    App.Properties.valid.set('userIsAuthorised', response.toJSON().val)
-                    App.Properties.valid.set('userId', response.toJSON().userId)
+                    var userId = response.toJSON().userId;
+                    setTimeout(function(){
+                        console.log("JSON val = ", response.toJSON().val);
+                        App.Properties.valid.set('userIsAuthorised', response.toJSON().val);
+                        if (App.Properties.thisUser){
+                            App.Properties.valid.set('username', App.Properties.thisUser.get('username'));
+                        }
+                        App.Properties.valid.set('userId', userId);
+                    }, 100);
                 }
             });
-        //}, 1000);
     };
 
     App.Functions.loadModels = function(id) {
@@ -92,10 +142,13 @@
         $('#signOutBut').show();
         $('#signBut').hide();
         $('#regBut').hide();
+        $('.butMini').show();
+        //$('#showUserButtons').hide();
         //$('#users').hide();
         App.Functions.loadModels(id);
         setTimeout(function(){
             var loadColl = App.Functions.loadModels(id);
+            App.Properties.thisUser = loadColl.where({_id: id})[0];
             console.log(loadColl);
             if (loadColl) {
                 console.log("id = ", id);
@@ -103,11 +156,12 @@
                 console.log("col = ",loadColl.where({_id: id})[0]);
                 App.Properties.valid.set('userId', loadColl.where({_id: id})[0]);
                 App.Properties.valid.set('userIsAuthorised', true);
+                App.Functions.userIsValid();
                 var userView = new App.Views.NewUserPage({model: loadColl.where({_id: id})[0]});
                 $('#containerHeader').show();
                 $('#containerHeaderBlock').html(template('mainHeader'));
                 $('#forUsersHeader').append(userView.render().el);
-                App.Properties.ourUser = id;
+                //App.Properties.ourUser = id;
             } else {
                 console.log("User else not load")
             }
@@ -132,9 +186,9 @@
     };
 
 
-    //--------------------
-    //-------MODELS-------
-    //--------------------
+    //-------------------------------------------------------------------------------
+    //-------MODELS--------------MODELS--------------MODELS-------------MODELS-------
+    //-------------------------------------------------------------------------------
 
 
     Backbone.Model.prototype.idAttribute = "_id";
@@ -145,6 +199,10 @@
             content: "empty",
             image: ""
         }
+    });
+
+    App.Models.SendMessage = Backbone.Model.extend({
+        url: "http://localhost:3060/sendMessage"
     });
 
     App.Models.UserLogValid = Backbone.Model.extend({
@@ -164,6 +222,9 @@
     });
     //I`m deleted default data
     App.Models.UserPage = Backbone.Model.extend({
+        defaults: {
+            img: 'images/question.png'
+        },
         validate: function(attr){
             if ((!attr.username) || (attr.username.length < 3)) {
                 return "Length username must be more at 3 symbols"
@@ -175,9 +236,9 @@
     });
 
 
-    //--------------------
-    //----COLLECTIONS-----
-    //--------------------
+    //--------------------------------------------------------------------------------
+    //----COLLECTIONS---------COLLECTIONS---------COLLECTIONS---------COLLECTIONS-----
+    //--------------------------------------------------------------------------------
 
     App.Collections.UserPages = Backbone.Collection.extend({
         url: "http://localhost:3060/users",
@@ -191,10 +252,65 @@
         model: App.Models.Post
     });
 
-    //--------------------
-    //-------VIEWS--------
-    //-------LOGIN--------
-    //--------------------
+    //--------------------------------------------------------------------------------
+    //-------VIEWS---------------VIEWS---------------VIEWS---------------VIEWS--------
+    //-------SEND@---------------SEND@---------------SEND@---------------SEND@--------
+    //--------------------------------------------------------------------------------
+    App.Views.NewSendEmail = Backbone.View.extend({
+        model: new App.Models.SendMessage,
+        template: template("sendEmail"),
+        events: {
+            'click #sendEmailButton': 'sendEmail'
+        },
+        initialize: function(){
+            this.render();
+        },
+        render: function(){
+            this.$el.html(this.template());
+            return this
+        },
+        sendEmail: function() {
+            console.log('send email');
+            user = new App.Models.SendMessage();
+            user.set('email', $('#sendEmailEdit').val());
+            user.save(null, {
+                success: function (response) {
+                    console.log("Successfully Save Data!))) with id " + response.toJSON()._id);
+                    console.log("username this user is " + response.toJSON().username);
+                    router.navigate('/connected_user/' + response.toJSON()._id, {trigger: true});
+                },
+                error: function () {
+                    console.log("Failed Save data((((")
+                }
+            });
+        }
+    });
+
+
+
+
+    App.Views.SendEmailPage = Backbone.View.extend({
+        el: '#global',
+        //el: $('#login-block'),
+
+        initialize: function(){
+            console.log(this.el);
+        },
+        events: {
+            'click #signBut': 'showForm'
+        },
+        render: function() {
+            var userView = new App.Views.NewSendEmail();
+            $('#containerHeaderBlock').append(userView.render().el);
+        }
+
+    });
+
+
+    //--------------------------------------------------------------------------------
+    //-------VIEWS---------------VIEWS---------------VIEWS---------------VIEWS--------
+    //-------LOGIN---------------LOGIN---------------LOGIN---------------LOGIN--------
+    //--------------------------------------------------------------------------------
     App.Views.NewLogin = Backbone.View.extend({
         model: new App.Collections.UserPages,
         template: template("login"),
@@ -238,12 +354,6 @@
             } else {
                 $('#errorLabLog').html(user.validationError);
             }
-
-            //new App.Models.UserPage({model: user});
-
-            //ourUser = App.Models.UserPage();
-
-
             App.Functions.clearLogForm();
             compResult = 1;
         }
@@ -254,10 +364,10 @@
     App.Views.LoginPage = Backbone.View.extend({
         el: '#global',
         //el: $('#login-block'),
-
-        events: {initialize: function(){
+        initialize: function(){
             console.log(this.el);
         },
+        events: {
             'click #signBut': 'showForm'
         },
         render: function() {
@@ -267,10 +377,10 @@
 
     });
 
-    //--------------------
-    //-------VIEWS--------
-    //------REGISTER------
-    //--------------------
+    //--------------------------------------------------------------------------------
+    //-------VIEWS---------------VIEWS---------------VIEWS---------------VIEWS--------
+    //------REGISTER------------REGISTER------------REGISTER------------REGISTER------
+    //--------------------------------------------------------------------------------
     App.Views.NewRegister = Backbone.View.extend({
         //model: userCol,
         template: template("register"),
@@ -356,16 +466,99 @@
     });
 
 
-    //--------------------
-    //-------VIEWS--------
-    //-------USER---------
-    //--------------------
+    //--------------------------------------------------------------------------------
+    //-------VIEWS---------------VIEWS---------------VIEWS---------------VIEWS--------
+    //-------USER----------------USER----------------USER----------------USER---------
+    //--------------------------------------------------------------------------------
 
     App.Views.NewUserPage = Backbone.View.extend({
         tagName: "li",
         template: template("user"),
         initialize: function(){
+            this.on('delete', this.remove, this);
             this.render();
+        },
+        events: {
+            'click #deleteUserButton': 'deleteUser',
+            'click #updateUserButton': 'showUpdateForm',
+            'click #updateUserButtonForm': 'updateUser'
+        },
+        showUpdateForm: function() {
+            this.$el.show().append(template('update'));
+            var username = this.$('#lab1').html();
+            var email = this.$('#lab2').html();
+            var birthday = this.$('#lab3').html();
+            var address = this.$('#lab4').html();
+
+            $('#editUsernameUpd').val(username);
+            $('#editEmailUpd').val(email);
+            $('#editBirthdayUpd').val(birthday);
+            $('#editAddressUpd').val(address);
+        },
+        updateUser: function() {
+            var compResult = 1;
+            //var myCol = App.Functions.loadModels();
+            this.model.set('username', $('#editUsernameUpd').val());
+            if (($('#editPasswordUpd').val()) == ($('#editConfirmPasswordUpd').val()) && ($('#editPasswordUpd').val().length > 6)) {
+                console.log("passwordTrue => ", $('#editPasswordUpd').val());
+                this.model.set('password', $('#editPasswordUpd').val());
+            } else {
+                compResult = 0;
+                console.log("passwordFalse => ", $('#editPasswordUpd').val());
+                this.model.set('password', $('#editPasswordUpd').val());
+            }
+            this.model.set('email', $('#editEmailUpd').val(),{validate: true});
+            console.log("email => ", $('#editEmailUpd').val());
+            this.model.set('birthday', $('#editBirthdayUpd').val(), {validate: true});
+            console.log("birthday => ", $('#editBirthdayUpd').val());
+            this.model.set('address', $('#editAddressUpd').val(), {validate: true});
+            console.log("address => ", $('#editAddressUpd').val());
+
+
+            console.log(this.model.validationError);
+            console.log("isValid?? " ,this.model.isValid());
+            console.log(this.model.toJSON());
+            if (this.model.isValid() && compResult){
+                //this.collection.add(user);
+                this.model.save(null, {
+                    success: function(response) {
+                        console.log("Successfully UPDATE Data!))) with id " + response.toJSON()._id);
+
+                        compResult = 1;
+                    },
+                    error: function(){
+                        console.log("Failed Save data((((")
+                        compResult = 1;
+                    }
+                });
+            } else if(!compResult) {
+                console.log("passwords is not confirm!");
+                compResult = 1;
+                $('#errorLab').html("password must be confirm and more at 6 symbols!");
+            } else {
+                console.log(this.model.validationError);
+                $('#updateLab').html(this.model.validationError);
+                compResult = 1;
+            }
+            $('#viewContentHeader').hide();
+            router.navigate('#showUsers', {trigger: true});
+        },
+        deleteUser: function() {
+            this.model.destroy({
+                success: function(response) {
+                    console.log("Successfully DELETED user with id " + response.toJSON()._id);
+                    if (App.Properties.valid.get('username') !== 'admin') {
+                        App.Properties.valid.set('userIsAuthorised', false);
+                        router.navigate('#showUsers',{trigger: true});
+                    }
+                    App.Functions.userIsValid();
+                    $('#containerHeaderBlock').html('');
+                    App.Properties.userView.render();
+                },
+                error: function(){
+                    console.log("Failed to delete user!")
+                }
+            })
         },
         render: function(){
             console.log("el = ", this.$el);
@@ -402,10 +595,10 @@
         }
     });
 
-    //--------------------
-    //-------VIEWS--------
-    //-------POST---------
-    //--------------------
+    //--------------------------------------------------------------------------------
+    //-------VIEWS---------------VIEWS---------------VIEWS---------------VIEWS--------
+    //-------POST----------------POST----------------POST----------------POST---------
+    //--------------------------------------------------------------------------------
 
     App.Views.NewPost = Backbone.View.extend({
         tagName: "li",
@@ -435,9 +628,9 @@
     });
 
 
-    //--------------------
-    //------ROUTERS-------
-    //--------------------
+    //--------------------------------------------------------------------------------
+    //------ROUTERS-------------ROUTERS-------------ROUTERS-------------ROUTERS-------
+    //--------------------------------------------------------------------------------
 
     App.Router = Backbone.Router.extend({
         routes: {
@@ -445,30 +638,42 @@
             'main': 'main',
             'logOut': 'main',
             'showUsers': 'showUsers',
+            'sendEmail': 'sendEmail',
             'register': 'register',
             'login': 'login',
-            'connected_user/:id': 'connUser'
+            'connected_user/:id': 'connUser',
+            'changeLogo': 'changeLogo'
         },
         main: function() {
             App.Functions.userIsValid();
             if (!App.Properties.valid.get('userIsAuthorised')) {
+                $('#welcomeBlock').html('').show().append(template('welcome'));
+                $('#signBut').show();
+                $('#regBut').show();
                 $('#posts').hide().html('');
                 $('#register-block').hide().html('');
                 $('#login-block').hide().html('');
-                $('#welcomeBlock').html('').show().append(template('welcome'));
                 $('#signOutBut').hide();
-                $('#signBut').show();
-                $('#regBut').show();
                 $('#containerHeader').hide();
-                App.Properties.ourUser = 0;
+
+                //App.Properties.ourUser = 0;
             } else {
                 router.navigate('/connected_user/' + App.Properties.valid.get('userId'), {trigger: true});
             }
         },
+        changeLogo: function() {
+            App.Functions.userIsValid();
+            setTimeout(App.Functions.changeLogo, 100);
+        },
+        sendEmail: function() {
+            App.Functions.userIsValid();
+            setTimeout(App.Functions.sendEmail, 100);
+        },
         showUsers: function() {
             App.Functions.userIsValid();
             console.log("i am get!", App.Properties.valid.get('userIsAuthorised'));
-            setTimeout(App.Functions.showUsers, 10);
+            console.log("i username!", App.Properties.valid.get('username'));
+            setTimeout(App.Functions.showUsers, 500);
         },
         register: function() {
             App.Functions.userIsValid();
@@ -507,9 +712,9 @@
         }
     });
 
-    //--------------------
-    //----INITIALIZE------
-    //--------------------
+    //--------------------------------------------------------------------------------
+    //----INITIALIZE----------INITIALIZE----------INITIALIZE----------INITIALIZE------
+    //--------------------------------------------------------------------------------
 
     App.Functions.init();
     Backbone.history.start();
