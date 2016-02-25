@@ -20,6 +20,28 @@
     //-----FUNCTIONS-----------FUNCTIONS-----------FUNCTIONS-----------FUNCTIONS
     //--------------------------------------------------------------------------
 
+    App.Functions.init = function() {
+        App.Properties.userCol = new App.Collections.UserPages();
+
+        App.Properties.friendsCol = new App.Collections.FriendsPages();
+
+        App.Properties.userView = new App.Views.UserPages({model: App.Properties.userCol});
+
+        App.Properties.friendsView = new App.Views.UserPages({model: App.Properties.friendsCol});
+
+        App.Properties.valid = new App.Models.UserLogValid();
+
+        regForm = new App.Views.RegisterPage({model: App.Properties.userCol});
+
+        sendEmailForm = new App.Views.SendEmailPage();
+
+        App.Properties.sendRestoreForm = new App.Views.SendRestorePage();
+
+        loginForm = new App.Views.LoginPage();
+
+        router = new App.Router;
+    };
+
 
     App.Functions.sendEmail = function() {
         if (App.Properties.valid.get('userIsAuthorised')) {
@@ -37,11 +59,14 @@
         }
     };
 
+
     App.Functions.showedUpdateButtons = function() {
         if(App.Properties.valid.get('username') !== 'admin') {
             $('.butMini').hide();
+            $('.butAdd').show();
         } else {
             $('.butMini').show();
+            $('.butSendMessage').hide();
             $('.butUpd').hide();
         }
     };
@@ -61,6 +86,27 @@
         }
     };
 
+    App.Functions.showFriends = function() {
+        if (App.Properties.valid.get('userIsAuthorised')) {
+            $('#posts').hide().html('');
+            $('#containerHeader').show();
+            $('#containerHeaderBlock').html('');
+            $('#register-block').hide().html('');
+            $('#login-block').hide().html('');
+            $('#welcomeBlock').hide();
+            $('#signOutBut').show();
+            $('#signBut').hide();
+            $('#regBut').hide();
+
+            console.log("Show users logname ", App.Properties.valid.get('username'));
+            //App.Properties.friendsView.initialize();
+            App.Properties.friendsView.render();
+            $('.butMini').hide();
+        } else {
+            router.navigate('/connected_user/' + App.Properties.valid.get('userId'), {trigger: true});
+        }
+    };
+
     App.Functions.showUsers = function() {
             if (App.Properties.valid.get('userIsAuthorised')) {
                 $('#posts').hide().html('');
@@ -73,27 +119,13 @@
                 $('#signBut').hide();
                 $('#regBut').hide();
                 console.log("Show users logname ", App.Properties.valid.get('username'));
+                //App.Properties.friendsView.initialize();
                 App.Properties.userView.render();
                 App.Functions.showedUpdateButtons();
             } else {
-                router.navigate('#main');
+                router.navigate('/connected_user/' + App.Properties.valid.get('userId'), {trigger: true});
+                //router.navigate('#main');
             }
-    };
-
-    App.Functions.init = function() {
-        App.Properties.userCol = new App.Collections.UserPages();
-
-        App.Properties.valid = new App.Models.UserLogValid();
-
-        App.Properties.userView = new App.Views.UserPages({model: App.Properties.userCol});
-
-        regForm = new App.Views.RegisterPage({model: App.Properties.userCol});
-
-        sendEmailForm = new App.Views.SendEmailPage();
-
-        loginForm = new App.Views.LoginPage();
-
-        router = new App.Router;
     };
 
 
@@ -102,7 +134,7 @@
                 success: function(response) {
                     var userId = response.toJSON().userId;
                     setTimeout(function(){
-                        console.log("JSON val = ", response.toJSON().val);
+                        console.log("JSON Valid val = ", response.toJSON().val);
                         App.Properties.valid.set('userIsAuthorised', response.toJSON().val);
                         if (App.Properties.thisUser){
                             App.Properties.valid.set('username', App.Properties.thisUser.get('username'));
@@ -118,7 +150,7 @@
             App.Properties.newUserCol = new App.Collections.UserPages();
             App.Properties.newUserCol.fetch({
                 success: function(){
-                    console.log('Successfully load with blog!');
+                    console.log('Successfully load with db!');
                     console.log(App.Properties.newUserCol);
                     return App.Properties.newUserCol;
                 },
@@ -134,7 +166,6 @@
 
     App.Functions.showOneUser = function(id) {
         App.Functions.userIsValid();
-        //router.navigate('/checkInUser/' + id);
         $('#posts').hide();
         $('#register-block').hide();
         $('#login-block').hide();
@@ -143,17 +174,16 @@
         $('#signBut').hide();
         $('#regBut').hide();
         $('.butMini').show();
-        //$('#showUserButtons').hide();
-        //$('#users').hide();
         App.Functions.loadModels(id);
         setTimeout(function(){
             var loadColl = App.Functions.loadModels(id);
             App.Properties.thisUser = loadColl.where({_id: id})[0];
-            console.log(loadColl);
+            //console.log("load collection =", loadColl);
             if (loadColl) {
-                console.log("id = ", id);
-                console.log("colFull = ",loadColl);
-                console.log("col = ",loadColl.where({_id: id})[0]);
+                //console.log("id = ", id);
+                //console.log("colFull = ",loadColl);
+                //console.log("col = ",loadColl.where({_id: id})[0]);
+                App.Properties.friendsView.initialize();
                 App.Properties.valid.set('userId', loadColl.where({_id: id})[0]);
                 App.Properties.valid.set('userIsAuthorised', true);
                 App.Functions.userIsValid();
@@ -161,7 +191,8 @@
                 $('#containerHeader').show();
                 $('#containerHeaderBlock').html(template('mainHeader'));
                 $('#forUsersHeader').append(userView.render().el);
-                //App.Properties.ourUser = id;
+                $('.butAdd').hide();
+                $('.butSendMessage').hide();
             } else {
                 console.log("User else not load")
             }
@@ -201,8 +232,16 @@
         }
     });
 
+    App.Models.AddFriends = Backbone.Model.extend({
+        url: "http://localhost:3060/addFriends"
+    });
+
     App.Models.SendMessage = Backbone.Model.extend({
-        url: "http://localhost:3060/sendMessage"
+        url: "http://localhost:3060/sendEmail"
+    });
+
+    App.Models.SendRestore = Backbone.Model.extend({
+        url: "http://localhost:3060/sendRestore"
     });
 
     App.Models.UserLogValid = Backbone.Model.extend({
@@ -245,12 +284,68 @@
         model: App.Models.UserPage
     });
 
-    // userCol = new App.Collections.UserPages();
+    App.Collections.FriendsPages = Backbone.Collection.extend({
+        url: "http://localhost:3060/friends",
+        model: App.Models.UserPage
+    });
 
     App.Collections.Posts = Backbone.Collection.extend({
         url: "http://localhost:3060/posts",
         model: App.Models.Post
     });
+
+    //--------------------------------------------------------------------------------
+    //-------VIEWS---------------VIEWS---------------VIEWS---------------VIEWS--------
+    //------RESTORE-------------RESTORE-------------RESTORE-------------RESTORE-------
+    //--------------------------------------------------------------------------------
+    App.Views.NewSendRestore = Backbone.View.extend({
+        model: new App.Models.SendRestore,
+        template: template("restorePassword"),
+        events: {
+            'click #restorePasswordButton': 'sendRestore'
+        },
+        initialize: function(){
+            console.log("i restoring");
+            this.render();
+        },
+        render: function(){
+            this.$el.html(this.template());
+            return this
+        },
+        sendRestore: function() {
+            console.log('send restore');
+            user = new App.Models.SendRestore();
+            user.set('email', $('#editEmailForRestore').val());
+            user.save(null, {
+                success: function (response) {
+                    console.log('mess for email = ' + response.toJSON().message);
+                    $('#errorLabRestore').html(response.toJSON().message);
+                    router.navigate('#main', {trigger: true});
+                },
+                error: function () {
+                    console.log("Failed Save data((((")
+                }
+            });
+        }
+    });
+
+
+
+
+    App.Views.SendRestorePage = Backbone.View.extend({
+        //el: '#global',
+        el: $('#login-block'),
+
+        initialize: function(){
+            //console.log(this.el);
+        },
+        render: function() {
+            var userView = new App.Views.NewSendRestore();
+            this.$el.append(userView.render().el);
+        }
+
+    });
+
 
     //--------------------------------------------------------------------------------
     //-------VIEWS---------------VIEWS---------------VIEWS---------------VIEWS--------
@@ -294,7 +389,7 @@
         //el: $('#login-block'),
 
         initialize: function(){
-            console.log(this.el);
+            //console.log(this.el);
         },
         events: {
             'click #signBut': 'showForm'
@@ -340,9 +435,8 @@
             if (user.isValid() && compResult){
                 user.save(null, {
                     success: function(response) {
-                        console.log("Successfully Save Data!))) with id " + response.toJSON()._id);
+                        console.log('Successfully Save Data!))) with id ' + response.toJSON()._id);
                         console.log("username this user is " + response.toJSON().username);
-                        console.log("address this user is " + response.toJSON().address);
                         router.navigate('/connected_user/' + response.toJSON()._id, {trigger: true});
                     },
                     error: function(){
@@ -362,17 +456,17 @@
     });
 
     App.Views.LoginPage = Backbone.View.extend({
-        el: '#global',
-        //el: $('#login-block'),
+        //el: '#global',
+        el: $('#login-block'),
         initialize: function(){
-            console.log(this.el);
+            //console.log(this.el);
         },
         events: {
             'click #signBut': 'showForm'
         },
         render: function() {
             var userView = new App.Views.NewLogin();
-            $('#login-block').append(userView.render().el);
+            this.$el.append(userView.render().el);
         }
 
     });
@@ -391,7 +485,7 @@
             'click #registerButton': 'sendFormReg'
         },
         render: function(){
-            console.log(this.$el);
+            //console.log(this.$el);
             this.$el.html(this.template());
             return this
         },
@@ -454,7 +548,7 @@
         el: '#global',
         //el: $('#login-block'),
         initialize: function(){
-            console.log(this.el);
+            //console.log(this.el);
         },
         events: {
             'click #regBut': 'showForm'
@@ -481,7 +575,25 @@
         events: {
             'click #deleteUserButton': 'deleteUser',
             'click #updateUserButton': 'showUpdateForm',
-            'click #updateUserButtonForm': 'updateUser'
+            'click #updateUserButtonForm': 'updateUser',
+            'click #addUserButton': 'addUserToFriends'
+        },
+        addUserToFriends: function() {
+            var modelForAddUser = new App.Models.AddFriends();
+            modelForAddUser.set({userId:
+                this.model.get('_id')
+            });
+            modelForAddUser.save(null, {
+                success: function(response) {
+                    console.log("Adding user is success");
+                    console.log("firstUser = ", response.toJSON().firstUser);
+                    console.log("secondUser = ", response.toJSON().secondUser);
+                    App.Properties.friendsView.initialize();
+                },
+                error: function() {
+                    console.log("Adding user is failed!");
+                }
+            });
         },
         showUpdateForm: function() {
             this.$el.show().append(template('update'));
@@ -561,24 +673,24 @@
             })
         },
         render: function(){
-            console.log("el = ", this.$el);
+            //console.log("el = ", this.$el);
             this.$el.html(this.template(this.model.toJSON()));
             return this
         }
     });
 
     App.Views.UserPages = Backbone.View.extend({
-        //model: userCol,
         el: $('#containerHeaderBlock'),
         initialize: function() {
-            console.log(this.collection);
+            console.log("App.Views.UserPages this.collection = ", this.collection);
             this.model.fetch({
                 success: function(response){
                     _.each(response.toJSON(),
                         function(item){
-                            console.log("Successfully GET blog with id " + item._id);
-                            $('#containerHeaderBlock').html("");
-                            App.Properties.userView.render();
+                            console.log('"User Page" Successfully GET blog with id ' + item._id);
+                            //$('#containerHeaderBlock').html("");
+                            //App.Properties.userView.render();
+                            //App.Properties.friendsView.render();
                         });
                 },
                 error: function(){
@@ -588,6 +700,8 @@
             console.log("mod = ", this.model.toJSON())
         },
         render: function() {
+            console.log("i in UserPages ready to render!");
+            console.log(this.model);
             this.model.each(function(myModel) {
                 var userView = new App.Views.NewUserPage({model:myModel});
                 this.$el.append(userView.render().el);
@@ -607,7 +721,7 @@
             this.render();
         },
         render: function(){
-            console.log("el = ", this.$el);
+            //console.log("el = ", this.$el);
             this.$el.html(this.template(this.model.toJSON()));
             return this
         }
@@ -638,11 +752,13 @@
             'main': 'main',
             'logOut': 'main',
             'showUsers': 'showUsers',
+            'showFriends': 'showFriends',
             'sendEmail': 'sendEmail',
             'register': 'register',
             'login': 'login',
             'connected_user/:id': 'connUser',
-            'changeLogo': 'changeLogo'
+            'changeLogo': 'changeLogo',
+            'restorePage' : 'restore'
         },
         main: function() {
             App.Functions.userIsValid();
@@ -655,8 +771,6 @@
                 $('#login-block').hide().html('');
                 $('#signOutBut').hide();
                 $('#containerHeader').hide();
-
-                //App.Properties.ourUser = 0;
             } else {
                 router.navigate('/connected_user/' + App.Properties.valid.get('userId'), {trigger: true});
             }
@@ -674,6 +788,12 @@
             console.log("i am get!", App.Properties.valid.get('userIsAuthorised'));
             console.log("i username!", App.Properties.valid.get('username'));
             setTimeout(App.Functions.showUsers, 500);
+        },
+        showFriends: function() {
+            App.Functions.userIsValid();
+            console.log("i am get!", App.Properties.valid.get('userIsAuthorised'));
+            console.log("i username!", App.Properties.valid.get('username'));
+            setTimeout(App.Functions.showFriends, 500);
         },
         register: function() {
             App.Functions.userIsValid();
@@ -698,11 +818,27 @@
                 $('#posts').hide().html('');
                 $('#containerHeader').hide();
                 $('#register-block').hide().html('');
-                $('#login-block').show();
+                $('#login-block').html('').show();
                 $('#signOutBut').hide();
                 $('#signBut').show();
                 $('#regBut').show();
                 loginForm.render();
+            } else {
+                router.navigate('#main');
+            }
+        },
+        restore: function() {
+            App.Functions.userIsValid();
+            if (!App.Properties.valid.get('userIsAuthorised')) {
+                $('#welcomeBlock').hide();
+                $('#posts').hide().html('');
+                $('#containerHeader').hide();
+                $('#register-block').hide().html('');
+                $('#login-block').html('').show();
+                $('#signOutBut').hide();
+                $('#signBut').show();
+                $('#regBut').show();
+                App.Properties.sendRestoreForm.render();
             } else {
                 router.navigate('#main');
             }

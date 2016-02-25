@@ -48,7 +48,9 @@
                         <li class="menuName">
                             <a href="#changeLogo">Change logo</a>
                         </li>
-                        <li class="menuName">Show Friends</li>
+                        <li class="menuName">
+                            <a href="#showFriends">Show Friends</a>
+                        </li>
                         <li class="menuName">Invite Friends</li>
                         <li class="menuName">
                             <a href="#showUsers">Find Friends</a>
@@ -77,11 +79,24 @@
 </div>
 
 
+
+
+
+
+
+
+
+
+
+
 <script type = "text/template" id="mainHeader">
     <div id="viewContentHeader">
         <ul id="forUsersHeader"></ul>
     </div>
 </script>
+
+
+
 <script type = "text/template" id ="user">
     <div id = "showUser" style="width: 79%; display:inline-block">
         <h6>my name is</h6>
@@ -100,17 +115,27 @@
         <div class="butMini butDel" id="deleteUserButton" style="float: right; margin-bottom: 50px">
             delete
         </div>
-        <div class="butMini butUpd" id="updateUserButton" style="float: right; margin-bottom: 0px">
+        <div class="butMini butUpd" id="updateUserButton" style="float: right; margin-bottom: 50px">
             update
+        </div>
+        <div class="butMini butAdd" id="addUserButton" style="float: right; margin-bottom: 50px">
+            add
+        </div>
+        <div class="butMini butSendMessage" id="sendMessageToFriendButton" style="float: right; margin-bottom: 0px">
+            mess
         </div>
     </div>
 </script>
+
+
 
 <script type = "text/template" id ="post">
     <h1> <%= title %> </h1>
     <h2> <%= content %> </h2>
     <h2> <%= image %> </h2>
 </script>
+
+
 
 
 
@@ -123,6 +148,9 @@
 
     </div>
 </script>
+
+
+
 
 <script type = "text/template" id ="sendEmail">
     <div id = "sendEmailForm">
@@ -141,6 +169,8 @@
 </script>
 
 
+
+
 <script type = "text/template" id ="welcome">
     <div id = "formWelcome">
         <div id = "bigWelcome">
@@ -152,6 +182,9 @@
         <h2> We are glad, because you connecting to our social network "Public House" </h2>
     </div>
 </script>
+
+
+
 
 <script type = "text/template" id ="login">
     <div id = "formLogin">
@@ -167,8 +200,30 @@
                     log in
                 </div>
             </a>
+            <a href="#restorePage">
+                <div class="butMini" id = "restorePageButton">
+                    restore
+                </div>
+            </a>
         </div>
         <label id = "errorLabLog"></label>
+    </div>
+</script>
+
+<script type = "text/template" id ="restorePassword">
+    <div id = "formRestore">
+        <label style="display: block">
+            <p>e - mail</p>
+            <input id="editEmailForRestore" type="text"><br>
+        </label>
+        <div style="margin-top: 20px">
+            <a href="#main">
+                <div class="butMini" id = "restorePasswordButton">
+                    restore
+                </div>
+            </a>
+        </div>
+        <label id = "errorLabRestore"></label>
     </div>
 </script>
 

@@ -13,7 +13,10 @@ var schema = new Schema({
         type: String,
         required: true
     },
-    email: String,
+    email: {
+        type: String,
+        unique: true
+    },
     img: {
         type: String,
         defaults: 'images/question.png'
@@ -23,9 +26,17 @@ var schema = new Schema({
         default: Date.now
     },
     address: String,
+    friends: {
+        type: Array,
+        default: []
+    },
     salt: {
         type: String,
         required: true
+    },
+    applied: {
+        type: Boolean,
+        default: false
     },
     created: {
         type: Date,
@@ -33,23 +44,28 @@ var schema = new Schema({
     }
 });
 
-console.log('i am in db file');
+console.log('i in user.js');
 
 
 schema.methods.encryptPassword = function(password) {
     return crypto.createHmac('sha1', this.salt).update(password).digest('hex');
 };
 
+var objWithPasswords = {};
+
 schema.virtual('password').set(function(password) {
-    this._plainPassword = password;
+    objWithPasswords.this = password;
+    //this._plainPassword = password;
     this.salt = Math.random() + '';
     this.hashedPassword = this.encryptPassword(password);
 }).get(function() {
-    return this._plainPassword;
+    //console.log("hello world " + objWithPasswords);
+    return objWithPasswords.this;
 });
 
 schema.methods.checkPassword = function(password) {
     return this.encryptPassword(password) == this.hashedPassword;
 };
+
 
 exports.User = mongoose.model('User', schema);

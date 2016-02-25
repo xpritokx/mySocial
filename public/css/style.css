@@ -187,7 +187,8 @@ footer {
     display: inline-block;
 }
 
-#formLogin #sendEmailForm{
+#formLogin #sendEmailForm #formRestore{
+    width: 100%;
     text-align: center;
 }
 
