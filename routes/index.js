@@ -1,4 +1,5 @@
 var UserDb = require('../dbmodels/user').User;
+var PostDb = require('../dbmodels/post').Post;
 var User = require('../models/User');
 var Admin = require('../models/Admin');
 var mongoose = require('mongoose');
@@ -7,13 +8,15 @@ var fs = require('fs');
 var nodemailer = require('nodemailer');
 var smtpTransport = require('nodemailer-smtp-transport');
 
+//TESTING strings for models
 admin = new Admin.Admin(6,5,4,3,2,1,0);
 user = new User.User(1,2,3,4,5,6,7);
 
+//exports for execution our major express app
 module.exports = function(app) {
-
+    // function which send message to email
     function sendEmail(to, title, text) {
-
+        //description authorization in to email client
         var transport = nodemailer.createTransport(
             smtpTransport({
                 service: 'gmail',
@@ -23,14 +26,14 @@ module.exports = function(app) {
                 }
             })
         );
-
+        //params which routing when and what sending
         var params = {
             from: 'xpritokx@gmail.com',
             to: to,//req.body.email,
             subject: title,//sender + ' welcomes you!',
             text: text//'Hello i want to invite you in the Public House! Just click in this link www.publichouse.com.ua'
         };
-
+        //function which sending message whith our param in to email
         transport.sendMail(params, function (err, res) {
             if (err) {
                 console.error("mail err = ", err);
@@ -47,6 +50,7 @@ module.exports = function(app) {
 
     // output all users in JSON Format
     app.route('/users').get(function(req, res){
+
         UserDb.find(function(err, users) {
             users.forEach(function(item) {
                console.log('Received a GET request for _id for /users ' + item._id);
@@ -65,7 +69,7 @@ module.exports = function(app) {
         user.save(function(err, doc) {
             var to = user.get('email');
             var title = 'Verification Public House';
-            var text = 'click to link for verification =) localhost:3060/#connected_user/' + user.get('_id');
+            var text = 'click to link for verification =) "localhost:3060/#connected_user/' + user.get('_id') + '"';
             sendEmail(to ,title, text);
 
             res.send(doc);
@@ -85,12 +89,20 @@ module.exports = function(app) {
                 if (masFriends.length >= 1) {
                     var collFriends = [];
                     var i = 0;
+                    var deletedUsers = 0;
                     for (i; i < masFriends.length; i++) {
                         console.log('i am add friends ' + masFriends[i]);
                         UserDb.findById(masFriends[i], function(err, user) {
-                            collFriends.push(user);
-                            if (collFriends.length == masFriends.length) {
-                                res.send(collFriends);
+                            if (user) {
+                                collFriends.push(user);
+                                if ((collFriends.length + deletedUsers) == masFriends.length) {
+                                    res.send(collFriends);
+                                }
+                            } else {
+                                deletedUsers++;
+                                if ((collFriends.length + deletedUsers) == masFriends.length) {
+                                    res.send();
+                                }
                             }
                         });
                     }
@@ -180,10 +192,14 @@ module.exports = function(app) {
         console.log('this passed validation user');
 
         if (req.session.user) {
-            res.send({
-                val: true,
-                userId: req.session.user
+            UserDb.findOne({_id: req.session.user}, function(err, user){
+                res.send({
+                    val: true,
+                    userId: req.session.user,
+                    verify: user.get('applied')
+                });
             });
+
         } else {
             res.send({val: false});
         }
@@ -299,6 +315,48 @@ module.exports = function(app) {
     });
 
 
+    app.post('/addPost',function(req, res) {
+        console.log('i am here in upload image for post!!!');
+
+        var form = new multiparty.Form();
+
+        form.parse(req, function(err, fields, files) {
+
+            var img = files.postImage[0];
+            fs.readFile(img.path, function(err, data) {
+                var path = './public/images/' + img.originalFilename;
+
+                fs.writeFile(path, data, function(err){
+                    if(err) {
+                        console.log(err);
+                    }
+                });
+
+                var post = {
+                    'title'   : fields.postTitle[0],
+                    'content' : fields.postContent[0],
+                    'img'     : (path).slice(9),
+                    'creater' : req.session.user
+                };
+
+                postModel = new mongoose.models.Post(post);
+                postModel.save();
+                PostDb.find(function(err, posts) {
+                    posts.forEach(function(item) {
+                        console.log('Is created POST for _id ' + item._id);
+                        console.log('Is added to post img ' + item.img);
+                    });
+                });
+
+                console.log("path = ", path);
+                console.log("iD userSession = ",req.session.user);
+
+
+                res.redirect('/#showPosts');
+            });
+        });
+    });
+
     app.post('/sendRestore', function(req, res){
         console.log('"/sendRestore" verifing Email ' + req.body.email);
         UserDb.findOne({email: req.body.email}, function(err, user) {
@@ -313,6 +371,13 @@ module.exports = function(app) {
                 res.send({message: true});
             }
         });
+    });
+
+    app.post('/changeState', function(req, res) {
+        UserDb.update({_id: req.body.userId}, {applied: true}, function(){
+            console.log("state is updated!");
+            res.send();
+        })
     });
 
     // parsing POST userLog form and verification user and password in db
@@ -330,16 +395,18 @@ module.exports = function(app) {
 
         //finding one user which match our password and username in db, and output data to client
         UserDb.findOne({username: username}, function(err, user){
-            if (user) {
+            if ((user) && (user.get('applied'))) {
                 if (user.checkPassword(password)){
                     console.log("User is found");
                     req.session.user = user._id;
                     res.send(user);
                 } else {
                     console.log('password is not true!');
+                    res.send();
                 }
             } else {
                 console.log('User is not found!');
+                res.send()
             }
         })
 

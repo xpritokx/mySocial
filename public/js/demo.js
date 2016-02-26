@@ -40,6 +40,8 @@
         loginForm = new App.Views.LoginPage();
 
         router = new App.Router;
+
+        App.Properties.changeState = new App.Models.ChangeState();
     };
 
 
@@ -48,7 +50,7 @@
             $('#containerHeaderBlock').html('').show();
             $('#signForSendEmailBut').show();
 
-            $('#posts').hide().html('');
+            $('#postsBlock').hide();
             $('#register-block').hide().html('');
             $('#login-block').hide().html('');
             $('#signBut').hide();
@@ -59,6 +61,22 @@
         }
     };
 
+    App.Functions.showPosts = function(){
+        if (App.Properties.valid.get('userIsAuthorised')) {
+            $('#containerHeader').show();
+            $('#containerHeaderBlock').html('').hide();
+            $('#postsBlock').show();
+            $('#register-block').hide().html('');
+            $('#login-block').hide().html('');
+            $('#welcomeBlock').hide();
+            $('#signOutBut').show();
+            $('#signBut').hide();
+            $('#regBut').hide();
+        } else {
+            router.navigate('/connected_user/' + App.Properties.valid.get('userId'), {trigger: true});
+            //router.navigate('#main');
+        }
+    };
 
     App.Functions.showedUpdateButtons = function() {
         if(App.Properties.valid.get('username') !== 'admin') {
@@ -76,7 +94,7 @@
             $('#containerHeaderBlock').html('').show().append(template('uploadFile2'));
             $('#signOutBut').show();
 
-            $('#posts').hide().html('');
+            $('#postsBlock').hide();
             $('#register-block').hide().html('');
             $('#login-block').hide().html('');
             $('#signBut').hide();
@@ -88,9 +106,9 @@
 
     App.Functions.showFriends = function() {
         if (App.Properties.valid.get('userIsAuthorised')) {
-            $('#posts').hide().html('');
+            $('#postsBlock').hide();
             $('#containerHeader').show();
-            $('#containerHeaderBlock').html('');
+            $('#containerHeaderBlock').html('').show();
             $('#register-block').hide().html('');
             $('#login-block').hide().html('');
             $('#welcomeBlock').hide();
@@ -109,9 +127,9 @@
 
     App.Functions.showUsers = function() {
             if (App.Properties.valid.get('userIsAuthorised')) {
-                $('#posts').hide().html('');
+                $('#postsBlock').hide();
                 $('#containerHeader').show();
-                $('#containerHeaderBlock').html('');
+                $('#containerHeaderBlock').html('').show();
                 $('#register-block').hide().html('');
                 $('#login-block').hide().html('');
                 $('#welcomeBlock').hide();
@@ -135,8 +153,12 @@
                     var userId = response.toJSON().userId;
                     setTimeout(function(){
                         console.log("JSON Valid val = ", response.toJSON().val);
+                        console.log("JSON Verify val = ", response.toJSON().verify);
+
                         App.Properties.valid.set('userIsAuthorised', response.toJSON().val);
-                        if (App.Properties.thisUser){
+                        App.Properties.valid.set('verify', response.toJSON().verify);
+
+                        if (App.Properties.thisUser) {
                             App.Properties.valid.set('username', App.Properties.thisUser.get('username'));
                         }
                         App.Properties.valid.set('userId', userId);
@@ -166,7 +188,7 @@
 
     App.Functions.showOneUser = function(id) {
         App.Functions.userIsValid();
-        $('#posts').hide();
+        $('#postsBlock').hide();
         $('#register-block').hide();
         $('#login-block').hide();
         $('#welcomeBlock').hide();
@@ -174,29 +196,39 @@
         $('#signBut').hide();
         $('#regBut').hide();
         $('.butMini').show();
+        $('#containerHeaderBlock').show();
+
+        console.log("user Is Verify?" , App.Properties.valid.get('verify'));
+        if (!App.Properties.valid.get('verified')){
+            App.Properties.changeState.set({userId: id});
+            App.Properties.changeState.save({
+                success: function() {
+                    console.log('user is changed');
+                }
+            });
+        }
+
+
         App.Functions.loadModels(id);
         setTimeout(function(){
             var loadColl = App.Functions.loadModels(id);
-            App.Properties.thisUser = loadColl.where({_id: id})[0];
-            //console.log("load collection =", loadColl);
             if (loadColl) {
-                //console.log("id = ", id);
-                //console.log("colFull = ",loadColl);
-                //console.log("col = ",loadColl.where({_id: id})[0]);
+                var model = loadColl.where({_id: id})[0];
+                App.Properties.thisUser = model;
                 App.Properties.friendsView.initialize();
-                App.Properties.valid.set('userId', loadColl.where({_id: id})[0]);
+                App.Properties.valid.set('userId', model);
                 App.Properties.valid.set('userIsAuthorised', true);
                 App.Functions.userIsValid();
-                var userView = new App.Views.NewUserPage({model: loadColl.where({_id: id})[0]});
+                var userView = new App.Views.NewUserPage({model: model});
                 $('#containerHeader').show();
-                $('#containerHeaderBlock').html(template('mainHeader'));
+                $('#containerHeaderBlock').show().html(template('mainHeader'));
                 $('#forUsersHeader').append(userView.render().el);
                 $('.butAdd').hide();
                 $('.butSendMessage').hide();
             } else {
                 console.log("User else not load")
             }
-        }, 50);
+        }, 60);
 
 
 
@@ -232,6 +264,10 @@
         }
     });
 
+    App.Models.ChangeState = Backbone.Model.extend({
+        url: "http://localhost:3060/changeState"
+    });
+
     App.Models.AddFriends = Backbone.Model.extend({
         url: "http://localhost:3060/addFriends"
     });
@@ -259,7 +295,6 @@
             }
         }
     });
-    //I`m deleted default data
     App.Models.UserPage = Backbone.Model.extend({
         defaults: {
             img: 'images/question.png'
@@ -753,6 +788,7 @@
             'logOut': 'main',
             'showUsers': 'showUsers',
             'showFriends': 'showFriends',
+            'showPosts': 'showPosts',
             'sendEmail': 'sendEmail',
             'register': 'register',
             'login': 'login',
@@ -766,7 +802,7 @@
                 $('#welcomeBlock').html('').show().append(template('welcome'));
                 $('#signBut').show();
                 $('#regBut').show();
-                $('#posts').hide().html('');
+                $('#postsBlock').hide();
                 $('#register-block').hide().html('');
                 $('#login-block').hide().html('');
                 $('#signOutBut').hide();
@@ -798,8 +834,8 @@
         register: function() {
             App.Functions.userIsValid();
             if (!App.Properties.valid.get('userIsAuthorised')) {
-                $('#posts').hide().html('');
-                $('#register-block').show();
+                $('#postsBlock').hide();
+                $('#register-block').html('').show();
                 $('#login-block').hide().html('');
                 $('#welcomeBlock').hide();
                 $('#containerHeader').hide();
@@ -815,7 +851,7 @@
             App.Functions.userIsValid();
             if (!App.Properties.valid.get('userIsAuthorised')) {
                 $('#welcomeBlock').hide();
-                $('#posts').hide().html('');
+                $('#postsBlock').hide();
                 $('#containerHeader').hide();
                 $('#register-block').hide().html('');
                 $('#login-block').html('').show();
@@ -831,7 +867,7 @@
             App.Functions.userIsValid();
             if (!App.Properties.valid.get('userIsAuthorised')) {
                 $('#welcomeBlock').hide();
-                $('#posts').hide().html('');
+                $('#postsBlock').hide();
                 $('#containerHeader').hide();
                 $('#register-block').hide().html('');
                 $('#login-block').html('').show();
@@ -845,6 +881,10 @@
         },
         connUser: function(id){
             App.Functions.showOneUser(id);
+        },
+        showPosts: function() {
+            App.Functions.userIsValid();
+            setTimeout(App.Functions.showPosts, 100);
         }
     });
 

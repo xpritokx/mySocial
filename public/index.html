@@ -46,12 +46,14 @@
                     <br>
                     <ul id="menuList">
                         <li class="menuName">
+                            <a href="#showPosts">Posts</a>
+                        </li>
+                        <li class="menuName">
                             <a href="#changeLogo">Change logo</a>
                         </li>
                         <li class="menuName">
                             <a href="#showFriends">Show Friends</a>
                         </li>
-                        <li class="menuName">Invite Friends</li>
                         <li class="menuName">
                             <a href="#showUsers">Find Friends</a>
                         </li>
@@ -61,9 +63,24 @@
                     </ul>
                 </div>
                 <div id="containerHeaderBlock">
+
+                </div>
+                <div id = "postsBlock" >
+                    <div id = "inputPost" style="width: 100%; text-align: center">
+                        <h3>Write your post here!</h3>
+                        <form method="post" action="/addPost" enctype="multipart/form-data">
+                            <p> post title </p>
+                            <input id="postTitle" name="postTitle" type="text">
+                            <p> post content </p>
+                            <input id="postContent" name="postContent" type="text">
+                            <p> post image </p>
+                            <input type="file" name="postImage"/>
+                            <input type="submit" value="AddPost"/>
+                        </form>
+                    </div>
+                    <ul id = "posts-list"></ul>
                 </div>
             </div>
-            <ul id="posts"></ul>
             <div id="welcomeBlock"></div>
             <div id="login-block" style="text-align: center"></div>
             <div id="register-block" style="text-align: center"></div>
@@ -145,7 +162,6 @@
             <input type="file" name="images"/>
             <input type="submit" value="Post"/>
         </form>
-
     </div>
 </script>
 
