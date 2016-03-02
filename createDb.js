@@ -32,8 +32,8 @@ function open(callback) {
 }
 
 function requireModels(callback) {
-    require('./dbmodels/user').User;
-    require('./dbmodels/post').Post;
+    require('./models/user').User;
+    require('./models/post').Post;
 
     async.each(Object.keys(mongoose.models), function(modelName, callback) {
         mongoose.models[modelName].ensureIndexes(callback);

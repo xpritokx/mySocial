@@ -1,3 +1,6 @@
+
+/*  CSS TEGS  */
+
 p {
     font-size: 20px;
 }
@@ -67,7 +70,7 @@ main {
 }
 
 footer {
-    margin: -30px auto;
+    margin:  auto;
     text-align: center;
     width: 800px;
     height: 50px;
@@ -75,6 +78,8 @@ footer {
 }
 
 
+
+/*  CSS ID  */
 
 
 #container {
@@ -96,6 +101,10 @@ footer {
 #updateLab #errorLab{
     font-size: 25px;
     color: red;
+}
+
+#post-list {
+    margin: auto;
 }
 
 #errorLabLog {
@@ -135,6 +144,7 @@ footer {
     text-align: center;
 }
 
+
 #logo-block {
     display: inline-block;
     width: 29%;
@@ -146,6 +156,7 @@ footer {
 }
 
 
+
 #containerHeaderBlock {
     position: relative;
     display: inline-block;
@@ -153,11 +164,12 @@ footer {
     width: 79%;
     border-left-style: solid;
     border-color: greenyellow;
-    background-color: RGBA(173, 255, 47, 0.2);
+
+    background-color: white;
+    /*background-color: RGBA(173, 255, 47, 0.2);*/
 }
 
 #containerHeader {
-
     min-width: 200px;
     height: 250px;
     width: 100%;
@@ -173,6 +185,10 @@ footer {
     width: 20%;
     float: left;
 
+}
+
+#delPostBut {
+    margin-top: 0px;
 }
 
 
@@ -192,6 +208,9 @@ footer {
     text-align: center;
 }
 
+
+/*  CSS CLASSES  */
+
 .but {
     text-align: center;
     font-family: franklin gothic medium, serif;
@@ -209,6 +228,7 @@ footer {
     height: 80px;
     cursor: pointer;
 }
+
 
 
 .menuName {

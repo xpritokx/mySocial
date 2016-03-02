@@ -3,299 +3,172 @@
 <head>
     <meta charset="UTF-8">
     <title>My Social</title>
-    <link rel="stylesheet" type="text/css" href="./css/bootstrap.css">
+    <link rel="stylesheet" type="text/css" href="./js/libs/bootstrap/dist/css/bootstrap.css">
     <link rel="stylesheet" type="text/css" href="./css/style.css">
+
+    <!-- LIBS -->
+
+    <script src="./js/libs/jquery/dist/jquery.js"></script>
+    <script src="./js/libs/underscore/underscore.js"></script>
+    <script src="./js/libs/backbone/backbone.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+
+    <script src="./js/helpers/geolocate.js"></script>
 </head>
 <body>
-<div id="global">
-    <header>
-        <div id="logo-block">
-            <a href="#main">
-                <div id="logo">
-                    <img id="imgLogo" src="images/house.png">
-                    public house
-                </div>
-            </a>
-        </div>
-
-        <div id="navigation">
-            <a href="#register">
-                <div class="but" id="regBut">
-                    register
-                </div>
-            </a>
-            <a href="#login">
-                <div class="but" id="signBut">
-                    sign in
-                </div>
-            </a>
-            <a href="/logOut">
-                <div class="but" id="signOutBut">
-                    sign out
-                </div>
-            </a>
-        </div>
-    </header>
-
-
-    <div id = content>
-        <main>
-            <div id="containerHeader">
-                <div id="menuHeader">
-                    <br>
-                    <br>
-                    <ul id="menuList">
-                        <li class="menuName">
-                            <a href="#showPosts">Posts</a>
-                        </li>
-                        <li class="menuName">
-                            <a href="#changeLogo">Change logo</a>
-                        </li>
-                        <li class="menuName">
-                            <a href="#showFriends">Show Friends</a>
-                        </li>
-                        <li class="menuName">
-                            <a href="#showUsers">Find Friends</a>
-                        </li>
-                        <li class="menuName">
-                            <a href="#sendEmail">Send Invite</a>
-                        </li>
-                    </ul>
-                </div>
-                <div id="containerHeaderBlock">
-
-                </div>
-                <div id = "postsBlock" >
-                    <div id = "inputPost" style="width: 100%; text-align: center">
-                        <h3>Write your post here!</h3>
-                        <form method="post" action="/addPost" enctype="multipart/form-data">
-                            <p> post title </p>
-                            <input id="postTitle" name="postTitle" type="text">
-                            <p> post content </p>
-                            <input id="postContent" name="postContent" type="text">
-                            <p> post image </p>
-                            <input type="file" name="postImage"/>
-                            <input type="submit" value="AddPost"/>
-                        </form>
+    <div id="global">
+        <header>
+            <div id="logo-block">
+                <a href="#main">
+                    <div id="logo">
+                        <img id="imgLogo" src="images/house.png">
+                        public house
                     </div>
-                    <ul id = "posts-list"></ul>
-                </div>
+                </a>
             </div>
-            <div id="welcomeBlock"></div>
-            <div id="login-block" style="text-align: center"></div>
-            <div id="register-block" style="text-align: center"></div>
-        </main>
 
-
-        <footer>
-            <p style="margin:auto; color:black; font-size:16px; padding-top: 50px;">© Pritok Studio. All images and copy are the property of Pritok Studio</p>
-            <br>
-            <br>
-        </footer>
-    </div>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-<script type = "text/template" id="mainHeader">
-    <div id="viewContentHeader">
-        <ul id="forUsersHeader"></ul>
-    </div>
-</script>
-
-
-
-<script type = "text/template" id ="user">
-    <div id = "showUser" style="width: 79%; display:inline-block">
-        <h6>my name is</h6>
-        <h1 id="lab1"><strong> <%= username %> </strong></h1>
-        <h6>my @-mail</h6>
-        <h4 id="lab2"> <%= email %> </h4>
-        <h6>i born</h6>
-        <h4 id="lab3"> <%= birthday %> </h4>
-        <h6>i live in</h6>
-        <h4 id="lab4"> <%= address %> </h4>
-    </div>
-    <div  id = "showUserButtons" style="width: 20%; display: inline-block">
-        <div id = "avatar">
-            <img id="ava" src= <%=img%> />
-        </div>
-        <div class="butMini butDel" id="deleteUserButton" style="float: right; margin-bottom: 50px">
-            delete
-        </div>
-        <div class="butMini butUpd" id="updateUserButton" style="float: right; margin-bottom: 50px">
-            update
-        </div>
-        <div class="butMini butAdd" id="addUserButton" style="float: right; margin-bottom: 50px">
-            add
-        </div>
-        <div class="butMini butSendMessage" id="sendMessageToFriendButton" style="float: right; margin-bottom: 0px">
-            mess
-        </div>
-    </div>
-</script>
-
-
-
-<script type = "text/template" id ="post">
-    <h1> <%= title %> </h1>
-    <h2> <%= content %> </h2>
-    <h2> <%= image %> </h2>
-</script>
-
-
-
-
-
-<script type = "text/template" id ="uploadFile2">
-    <div id="containerUpload2">
-        <form method="post" action="/upload" enctype="multipart/form-data">
-            <input type="file" name="images"/>
-            <input type="submit" value="Post"/>
-        </form>
-    </div>
-</script>
-
-
-
-
-<script type = "text/template" id ="sendEmail">
-    <div id = "sendEmailForm">
-        <label style="display: block">
-            <h6>email user</h6>
-            <input id="sendEmailEdit" type="text"><br>
-        </label>
-        <div style="margin-top: 20px">
-            <a href="#main">
-                <div class="butMini" id = "sendEmailButton">
-                    log in
-                </div>
-            </a>
-        </div>
-    </div>
-</script>
-
-
-
-
-<script type = "text/template" id ="welcome">
-    <div id = "formWelcome">
-        <div id = "bigWelcome">
-            Welcome<br>
-            to<br>
-            Public House!
-        </div>
-        <h1> Hi users! </h1>
-        <h2> We are glad, because you connecting to our social network "Public House" </h2>
-    </div>
-</script>
-
-
-
-
-<script type = "text/template" id ="login">
-    <div id = "formLogin">
-        <label style="display: block">
-            <p>login</p>
-            <input id="editUsernameLog" type="text"><br>
-            <p>password</p>
-            <input id="editPasswordLog" type="password"><br>
-        </label>
-        <div style="margin-top: 20px">
-            <a href="#main">
-                <div class="butMini" id = "signInButton">
-                    log in
-                </div>
-            </a>
-            <a href="#restorePage">
-                <div class="butMini" id = "restorePageButton">
-                    restore
-                </div>
-            </a>
-        </div>
-        <label id = "errorLabLog"></label>
-    </div>
-</script>
-
-<script type = "text/template" id ="restorePassword">
-    <div id = "formRestore">
-        <label style="display: block">
-            <p>e - mail</p>
-            <input id="editEmailForRestore" type="text"><br>
-        </label>
-        <div style="margin-top: 20px">
-            <a href="#main">
-                <div class="butMini" id = "restorePasswordButton">
-                    restore
-                </div>
-            </a>
-        </div>
-        <label id = "errorLabRestore"></label>
-    </div>
-</script>
-
-<script type = "text/template" id ="update">
-    <div id = "formUpdate">
-        <label style="display: block">
-            <p>login</p>
-            <input id="editUsernameUpd" type="text"><br>
-            <p>password</p>
-            <input id="editPasswordUpd" type="password"><br>
-            <p>confirm password</p>
-            <input id="editConfirmPasswordUpd" type="password"><br>
-            <p>email</p>
-            <input id="editEmailUpd" type="text"><br>
-            <p>birthday</p>
-            <input id="editBirthdayUpd" value="1990-01-01" max="2000-01-01" min="1970-01-01" type="date" style="width: 200px"><br>
-            <p>address</p>
-            <input id="editAddressUpd" type="text"><br>
-        </label>
-        <div style="margin-top: 20px">
-            <div class="butMini" id = "updateUserButtonForm">
-                update
+            <div id="navigation">
+                <a href="#register">
+                    <div class="but" id="regBut">
+                        register
+                    </div>
+                </a>
+                <a href="#login">
+                    <div class="but" id="signBut">
+                        sign in
+                    </div>
+                </a>
+                <a href="/logOut">
+                    <div class="but" id="signOutBut">
+                        sign out
+                    </div>
+                </a>
             </div>
-        </div>
-        <label id = "updateLab"></label>
-    </div>
-</script>
+        </header>
 
-<script type = "text/template" id ="register">
-    <div id = "formRegister">
-        <label style="display: block">
-            <p>login</p>
-            <input id="editUsernameReg" type="text"><br>
-            <p>password</p>
-            <input id="editPasswordReg" type="password"><br>
-            <p>confirm password</p>
-            <input id="editConfirmPasswordReg" type="password"><br>
-            <p>email</p>
-            <input id="editEmailReg" type="text"><br>
-            <p>birthday</p>
-            <input id="editBirthdayReg" value="1990-01-01" max="2000-01-01" min="1970-01-01" type="date" style="width: 200px"><br>
-            <p>address</p>
-            <input id="editAddressReg" type="text"><br>
-        </label>
-        <div style="margin-top: 20px">
-            <div class="butMini" id = "registerButton">
-                register
-            </div>
-        </div>
-        <label id = "errorLab"></label>
-    </div>
-</script>
 
-<script src="./js/jquery-2.1.4.min.js"></script>
-<script src="./js/underscore.js"></script>
-<script src="./js/backbone.js"></script>
-<script src="./js/demo.js"></script>
+        <div id = content>
+            <main>
+                <div id="containerHeader">
+                    <div id="menuHeader">
+                        <br>
+                        <br>
+                        <ul id="menuList">
+                            <li class="menuName">
+                                <a href="#showPosts">Posts</a>
+                            </li>
+                            <li class="menuName">
+                                <a href="#chat">Chat</a>
+                            </li>
+                            <li class="menuName">
+                                <a href="#changeLogo">Change logo</a>
+                            </li>
+                            <li class="menuName">
+                                <a href="#showFriends">Show Friends</a>
+                            </li>
+                            <li class="menuName">
+                                <a href="#showUsers">Find Friends</a>
+                            </li>
+                            <li class="menuName">
+                                <a href="#sendEmail">Send Invite</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div id="containerHeaderBlock">
+
+                    </div>
+
+                    <div id = "postsBlock">
+                        <div id = "inputPost" style="width: 100%; text-align: center">
+                            <h3>Write your post here!</h3>
+                            <form method="post" action="/posts" enctype="multipart/form-data">
+                                <p> post title </p>
+                                <input id="postTitle" name="postTitle" type="text">
+                                <p> post content </p>
+                                <input id="postContent" name="postContent" type="text">
+                                <p> post image </p>
+                                <input type="file" name="postImage"/>
+                                <input type="submit" value="AddPost"/>
+                            </form>
+                        </div>
+                    </div>
+                    <div id="post-block" style="width: 100%; text-align: center">
+                        <ul id = "posts-list"></ul>
+                    </div>
+
+                </div>
+                <div id="welcomeBlock"></div>
+                <div id="login-block" style="text-align: center"></div>
+                <div id="register-block" style="text-align: center"></div>
+            </main>
+
+
+            <footer>
+                <p style="margin:auto; color:black; font-size:16px; padding-top: 50px;">© Pritok Studio. All images and copy are the property of Pritok Studio</p>
+                <br>
+                <br>
+            </footer>
+        </div>
+    </div>
+
+
+    <!-- TEMPLATES -->
+
+    <script type = "text/html" id= "userListBlock" src="./js/templates/userListBlock.html"></script>
+    <script type = "text/html" id = "userPage" src="./js/templates/userPage.html"></script>
+    <script type = "text/html" id = "postElem" src="./js/templates/postElem.html"></script>
+    <script type = "text/html" id = "welcomePage" src = "./js/templates/welcomePage.html"></script>
+    <script type = "text/html" id = "sendInvitePage1" src="./js/templates/sendInvitePage1.html"></script>
+    <script type = "text/html" id = "loginPage" src="./js/templates/loginPage.html"></script>
+    <script type = "text/html" id = "restorePasswordPage1" src="./js/templates/restorePasswordPage1.html"></script>
+    <script type = "text/html" id = "updateUserInfoPage" src="js/templates/updateUserInfoPage.html"></script>
+    <script type = "text/html" id = "registerPage" src="js/templates/registerPage.html"></script>
+    <script type = "text/html" id = "uploadFilePage" src="js/templates/uploadFilePage.html"></script>
+    <script type = "text/html" id = "chat" src="js/templates/chatPage.html"></script>
+
+    <!-- SCRIPTS -->
+
+    <script src="./js/helpers/template.js"></script>
+    <script src="./js/helpers/loadingTemplates.js"></script>
+    <script src="./js/helpers/showUpdateButton.js"></script>
+    <script src="./js/helpers/currModel.js"></script>
+
+    <!-- BACKBONE MODELS -->
+
+    <script src="./js/models/user.js"></script>
+    <script src="./js/models/post.js"></script>
+    <script src="./js/models/login.js"></script>
+    <script src="./js/models/friend.js"></script>
+    <script src="./js/models/changeState.js"></script>
+
+
+    <!-- BACKBONE COLLECTIONS -->
+
+    <script src="./js/collections/user.js"></script>
+    <script src="./js/collections/post.js"></script>
+    <script src="./js/collections/friend.js"></script>
+
+    <!-- BACKBONE VIEWS -->
+
+    <script src="./js/views/user/form.js"></script>
+    <script src="./js/views/user/list.js"></script>
+
+    <script src="./js/views/post/form.js"></script>
+    <script src="./js/views/post/list.js"></script>
+
+    <script src="./js/views/register/form.js"></script>
+    <script src="./js/views/register/list.js"></script>
+
+    <script src="./js/views/login/form.js"></script>
+    <script src="./js/views/login/list.js"></script>
+
+    <!-- BACKBONE INIT -->
+
+    <script src="js/app.js"></script>
+
+
+
+
+
 </body>
 </html>

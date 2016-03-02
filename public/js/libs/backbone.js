@@ -1175,7 +1175,7 @@
   // Backbone.View
   // -------------
 
-  // Backbone Views are almost more convention than they are actual code. A View
+  // Backbone views are almost more convention than they are actual code. A View
   // is simply a JavaScript object that represents a logical chunk of UI in the
   // DOM. This might be a single item, an entire list, a sidebar or panel, or
   // even the surrounding frame which wraps your whole app. Defining a chunk of

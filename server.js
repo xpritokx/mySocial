@@ -7,37 +7,135 @@ var bodyParser = require('body-parser');
 var favicon = require('serve-favicon');
 var sessions = require('express-session');
 var cookie = require('cookie-parser');
-var http = require('http');
 var mongoose = require('mongoose');
+var http = require('http');
+
+//database host name 'localhost':
+var DB_HOST;
+
+//database name 'social'
+var DB_NAME;
+
+//database port ::27017
+var DB_PORT;
+
+var db;
+
+//option for connection to db
+var connectionOptions;
+
+//description environment variable
+var env = process.env.NODE_ENV;
+console.log('project in ', env);
+require('./config/' + env);
 
 var app = express();
 
-app.use(bodyParser.json());
-app.use(cookie());
-app.use(express.static(path.join(__dirname, '/public')));
-app.use(favicon(__dirname + '/public/images/favicon1.ico'));
+DB_HOST = process.env.DB_HOST;
+DB_NAME = process.env.DB_NAME;
+DB_PORT = parseInt(process.env.DB_PORT, 10);
 
-//path = > path which have cookie
-//httpOnly => security against XSS attack!
-// maxAge => cookie deleting how closing brauser
+connectionOptions = {
+    server: {poolSize: 5},
+    //user: process.env.DB_USER,
+    //pass: process.env.DB_NAME,
+    w: 1,
+    j: true
+};
 
-var MongoStore = require('connect-mongo')(sessions);
+//connection to db
+//mongoose.connect('localhost', 'social', '27017', [opt]);
+mongoose.connect(DB_HOST, DB_NAME, DB_PORT, connectionOptions);
 
-app.use(sessions({
-    "secret": "Transcarpathian",
-    "cookie": {
-        "path": "/",
-        "httpOnly": true,
-        "maxAge": null
-    },
-    store: new MongoStore({
-        mongooseConnection: mongoose.connection
-    })
-}));    //connect.cid
+db = mongoose.connection;
+
+db.once('connected', onConnection);
+db.on('error', function(err){
+    throw err;
+});
 
 
-http.createServer(app).listen(3060);
 
-require('./createDb');
-require('./routes')(app);
-module.exports = app;
+function onConnection() {
+    //port = 8088
+    var port = process.env.PORT;
+
+    //auth stack middleware
+    var authStackMiddleware = require('./helpers/auth');
+
+    //declaration routers
+    var postRouter;
+    var userRouter;
+    var friendRouter;
+    var authRouter;
+    var indexRouter;
+
+    port = parseInt(port, 10);
+
+    userRouter = require('./routes/users');
+    postRouter = require('./routes/posts');
+    friendRouter = require('./routes/friends');
+    authRouter = require('./routes/auth');
+    indexRouter = require('./routes/index');
+
+    console.log("database in connection");
+
+    //require db schemas user/post
+    require('./models/index');
+
+    app.use(bodyParser.json());
+    app.use(cookie());
+    app.use(express.static(path.join(__dirname, '/public')));
+    app.use(favicon(__dirname + '/public/images/favicon1.ico'));
+
+    //required store for save sessions
+    var MongoStore = require('connect-mongo')(sessions);
+
+    //creating sessions
+    //path = > path which have cookie
+    //httpOnly => security against XSS attack!
+    // maxAge => cookie deleting how closing brauser
+    app.use(sessions({
+        "secret": "Transcarpathian",
+        "cookie": {
+            "path": "/",
+            "httpOnly": true,
+            "maxAge": null
+        },
+        store: new MongoStore({
+            mongooseConnection: db
+        })
+    }));
+
+    //ROUTES
+
+    app.use('/users', authStackMiddleware, userRouter);
+    app.use('/posts', authStackMiddleware, postRouter);
+    app.use('/friends', authStackMiddleware, friendRouter);
+    app.use('/userLog', authRouter);
+    app.use('/', indexRouter);
+
+    app.use(function (err, req, res, next) {
+        var status = err.status || 500;
+
+        if (process.env.NODE_ENV === 'production') {
+            res.status(status).send({error: err.message});
+            console.error(err.message + '\n' + err.stack);
+        } else {
+            res.status(status).send({error: err.message + '\n' + err.stack});
+            console.error(err.message + '\n' + err.stack);
+        }
+    });
+
+
+    //running server
+    var server = http.createServer(app).listen(port, function () {
+        console.log('server is listing post ', port);
+    });
+
+    require('./helpers/chat')(server)
+
+}
+
+
+
