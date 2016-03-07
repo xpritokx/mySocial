@@ -28,6 +28,7 @@ module.exports = function() {
 
     this.exitUser = function (req, res, next) {
         req.session.destroy();
+        process.env.ID_USER = null;
         console.log('Session Destroyed!!!');
         res.redirect('/#main');
     };
@@ -65,34 +66,5 @@ module.exports = function() {
         });
     };
 
-    this.restorePass = function (req,res, next) {
 
-        var form = new multiparty.Form();
-
-        form.parse(req, function (err, fields, files) {
-
-            UserDb.findOne({email: fields.email}, function (err, user) {
-
-                if (!user) {
-                    console.log('user with this email is not found!');
-                    res.redirect('/#main');
-                } else {
-
-                    console.log(user.get('username'));
-                    sendEmail(fields.email[0], user.get('username') + ' you password is here!', 'Hello ' + user.get('username') + ' your password from Public House is ' + user.get('password'));
-
-                    res.redirect('/#main');
-                }
-            });
-        });
-
-
-    };
-
-    this.changeState = function (req, res, next) {
-        UserDb.update({_id: req.body.userId}, {applied: true}, function () {
-            console.log("state is updated!");
-            res.status(200).send();
-        })
-    }
 };

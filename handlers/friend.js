@@ -12,7 +12,7 @@ module.exports = function () {
 
             var firstUserMasFriends = firstUser.friends;
 
-            if (firstUserMasFriends.indexOf(req.body.userId) == -1) {
+            if (firstUserMasFriends.indexOf(req.body.userId) === -1) {
                 firstUserMasFriends.push(req.body.userId);
 
                 UserDb.update({_id: req.session.user.userId}, {friends: firstUserMasFriends}, function () {
@@ -24,7 +24,7 @@ module.exports = function () {
 
                         var secondUserMasFriends = secondUser.friends;
 
-                        if (secondUserMasFriends.indexOf(req.session.user.userId) == -1) {
+                        if (secondUserMasFriends.indexOf(req.session.user.userId) === -1) {
                             secondUserMasFriends.push(req.session.user.userId);
 
                             UserDb.update({_id: req.body.userId}, {friends: secondUserMasFriends}, function () {
@@ -67,7 +67,7 @@ module.exports = function () {
                                 if (user) {
                                     collFriends.push(user);
 
-                                    if ((collFriends.length + deletedUsers) == masFriends.length) {
+                                    if ((collFriends.length + deletedUsers) === masFriends.length) {
 
                                         for (i = 0; i < collFriends.length; i++) {
                                             collFriends[i].set({dist: geoLock(req.session.user.coords.latitude, collFriends[i].coords.latitude, req.session.user.coords.longitude, collFriends[i].coords.longitude)});
@@ -80,7 +80,7 @@ module.exports = function () {
                                 } else {
                                     deletedUsers++;
 
-                                    if ((collFriends.length + deletedUsers) == masFriends.length) {
+                                    if ((collFriends.length + deletedUsers) === masFriends.length) {
                                         res.status(200).send();
                                     }
                                 }

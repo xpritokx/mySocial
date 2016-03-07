@@ -4,10 +4,10 @@ var Handler = require('../handlers/auth');
 
 var handler = new Handler();
 
-// output all users in JSON Format (getUserAuth)
-router.get('/', handler.getUserAuth);
-
 // parsing POST userLog form and verification user and password in db (enterInToSite)
 router.post('/', handler.enterInToSite);
+
+// registration User, send message for verify User
+router.get('/:id', handler.verify);
 
 module.exports = router;

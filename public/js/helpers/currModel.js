@@ -1,22 +1,35 @@
-function currModel (func) {
-    if (!currentUserModel) {
-        var modelInstance = new UserPageModel({_id:'admin'});
-        console.log(modelInstance);
-        modelInstance.urlRoot = function () {
-            return '/users/';
-        };
-        console.log(modelInstance.urlRoot);
+define([
+    'Backbone',
+    'Underscore',
+    'models/user',
+], function (
+    Backbone,
+    _,
+    UserPageModel
+){
+
+    var currModel = function (func) {
+        var modelInstance = new UserPageModel({_id: 'id_for_URL/:id'});
+
+        modelInstance.on('change', function () {
+            console.log('current model has been changed!');
+        });
+
         modelInstance.fetch({
             success: function(model){
-                currentUserModel = model;
+                if (func) {
+                    func(model);
+                }
+            },
+            error: function () {
                 if (func) {
                     func();
                 }
             }
         });
-    } else {
-        if (func) {
-            func();
-        }
-    }
-}
+    };
+
+    return currModel
+
+});
+

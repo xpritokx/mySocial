@@ -6,7 +6,11 @@ module.exports = function(req, res, next){
         err.status = 403;
 
         return next(err);
+    } else {
+        process.env.ID_USER = req.session.user.userId;
+
+        next();
     }
 
-    next();
+
 };

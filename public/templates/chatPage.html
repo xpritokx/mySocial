@@ -9,6 +9,7 @@
     </ul>
 </div>
 <script>
+
     var socket = io.connect('', {
         'reconnection delay': 1
     });
@@ -38,8 +39,7 @@
     function sendMessage () {
         var text = input.val();
         socket.emit('message', {
-            text: text,
-            userId: currentUserModel.get('_id')
+            text: text
         });
 
 
@@ -50,7 +50,6 @@
     function printMessage(user, text) {
         ul.append('<li>' + user + ' => ' + text + '</li>')
     }
-
 
 </script>
 

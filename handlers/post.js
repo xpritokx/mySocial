@@ -51,8 +51,12 @@ module.exports = function () {
                         'title'      : fields.postTitle[0],
                         'content'    : fields.postContent[0],
                         'img'        : (path).slice(9),
-                        'creater'    : user.username,
-                        'createrImg' : user.img
+                        'createrId'  : user._id,
+                        'createrInfo': {
+                            'createrUsername' : user.username,
+                            'createrImg'      : user.img
+                        }
+
                     };
 
                     var postModel = new mongoose.models.Post(post);

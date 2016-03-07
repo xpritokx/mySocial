@@ -10,9 +10,6 @@ router.get('/', handler.getAllUser);
 // output one user (getOneUser)
 router.get('/:id', handler.getOneUser);
 
-// saved users by form registration in JSON Format POST method  (saveUser)
-router.post('/', handler.saveUser);
-
 //deleting user by id (deleteUser)
 router.put('/:id', handler.updateUser);
 

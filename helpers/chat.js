@@ -16,15 +16,18 @@ module.exports = function(server){
 
         socket.on('message', function(text) {
             console.log('soso = ', text);
-            UserDb.findById(text.userId, function(err, user){
-                if (user) {
-                    socket.broadcast.emit('message', {
-                        username: user.username,
-                        text: text.text
-                    });
-                }
-            });
-
+            if (process.env.ID_USER) {
+                UserDb.findById(process.env.ID_USER, function(err, user){
+                    console.log('user Id', process.env.ID_USER);
+                    console.log('user', user);
+                    if (user) {
+                        socket.broadcast.emit('message', {
+                            username: user.username,
+                            text: text.text
+                        });
+                    }
+                });
+            }
         })
     });
 };

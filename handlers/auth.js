@@ -4,18 +4,16 @@ var geoLock = require('../helpers/findLocation');
 
 
 module.exports = function () {
-    this.getUserAuth = function (req, res, next) {
-        UserDb.find({}, {hashedPassword: 0}, function (err, users) {
+    this.verify = function (req, res, next) {
+        var id = req.params.id;
+
+        UserDb.findByIdAndUpdate(id, {$set: {applied: true}}, function (err, user) {
             if (err) {
                 return next(err);
             }
 
-            users.forEach(function (item) {
-                console.log('Received a GET request for _id for /users ' + item._id);
-            });
-
-            res.status(200).send(users);
-        });
+            res.redirect('/#main');
+        })
     };
 
     this.enterInToSite = function (req, res, next) {

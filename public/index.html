@@ -7,13 +7,9 @@
     <link rel="stylesheet" type="text/css" href="./css/style.css">
 
     <!-- LIBS -->
-
-    <script src="./js/libs/jquery/dist/jquery.js"></script>
-    <script src="./js/libs/underscore/underscore.js"></script>
-    <script src="./js/libs/backbone/backbone.js"></script>
     <script src="/socket.io/socket.io.js"></script>
+    <script data-main="js/main.js" src="js/libs/requirejs/require.js"></script>
 
-    <script src="./js/helpers/geolocate.js"></script>
 </head>
 <body>
     <div id="global">
@@ -78,19 +74,8 @@
 
                     </div>
 
-                    <div id = "postsBlock">
-                        <div id = "inputPost" style="width: 100%; text-align: center">
-                            <h3>Write your post here!</h3>
-                            <form method="post" action="/posts" enctype="multipart/form-data">
-                                <p> post title </p>
-                                <input id="postTitle" name="postTitle" type="text">
-                                <p> post content </p>
-                                <input id="postContent" name="postContent" type="text">
-                                <p> post image </p>
-                                <input type="file" name="postImage"/>
-                                <input type="submit" value="AddPost"/>
-                            </form>
-                        </div>
+                    <div id="placeForPostBlock">
+
                     </div>
                     <div id="post-block" style="width: 100%; text-align: center">
                         <ul id = "posts-list"></ul>
@@ -110,65 +95,5 @@
             </footer>
         </div>
     </div>
-
-
-    <!-- TEMPLATES -->
-
-    <script type = "text/html" id= "userListBlock" src="./js/templates/userListBlock.html"></script>
-    <script type = "text/html" id = "userPage" src="./js/templates/userPage.html"></script>
-    <script type = "text/html" id = "postElem" src="./js/templates/postElem.html"></script>
-    <script type = "text/html" id = "welcomePage" src = "./js/templates/welcomePage.html"></script>
-    <script type = "text/html" id = "sendInvitePage1" src="./js/templates/sendInvitePage1.html"></script>
-    <script type = "text/html" id = "loginPage" src="./js/templates/loginPage.html"></script>
-    <script type = "text/html" id = "restorePasswordPage1" src="./js/templates/restorePasswordPage1.html"></script>
-    <script type = "text/html" id = "updateUserInfoPage" src="js/templates/updateUserInfoPage.html"></script>
-    <script type = "text/html" id = "registerPage" src="js/templates/registerPage.html"></script>
-    <script type = "text/html" id = "uploadFilePage" src="js/templates/uploadFilePage.html"></script>
-    <script type = "text/html" id = "chat" src="js/templates/chatPage.html"></script>
-
-    <!-- SCRIPTS -->
-
-    <script src="./js/helpers/template.js"></script>
-    <script src="./js/helpers/loadingTemplates.js"></script>
-    <script src="./js/helpers/showUpdateButton.js"></script>
-    <script src="./js/helpers/currModel.js"></script>
-
-    <!-- BACKBONE MODELS -->
-
-    <script src="./js/models/user.js"></script>
-    <script src="./js/models/post.js"></script>
-    <script src="./js/models/login.js"></script>
-    <script src="./js/models/friend.js"></script>
-    <script src="./js/models/changeState.js"></script>
-
-
-    <!-- BACKBONE COLLECTIONS -->
-
-    <script src="./js/collections/user.js"></script>
-    <script src="./js/collections/post.js"></script>
-    <script src="./js/collections/friend.js"></script>
-
-    <!-- BACKBONE VIEWS -->
-
-    <script src="./js/views/user/form.js"></script>
-    <script src="./js/views/user/list.js"></script>
-
-    <script src="./js/views/post/form.js"></script>
-    <script src="./js/views/post/list.js"></script>
-
-    <script src="./js/views/register/form.js"></script>
-    <script src="./js/views/register/list.js"></script>
-
-    <script src="./js/views/login/form.js"></script>
-    <script src="./js/views/login/list.js"></script>
-
-    <!-- BACKBONE INIT -->
-
-    <script src="js/app.js"></script>
-
-
-
-
-
 </body>
 </html>

@@ -1,18 +1,22 @@
-/**
- * Created by Pritok on 29.02.2016.
- */
-function showUpdateButton() {
-    currModel(function () {
-        if(currentUserModel.get('username') !== 'admin') {
-            $('.butMini').hide();
-            $('.butAdd').show();
-        } else {
-            $('.butMini').show();
-            $('.butSendMessage').hide();
-            $('.butUpd').hide();
-            $('.deletePostButtonForm').show();
-        }
-    });
+define([
+    'helpers/currModel'
+], function (
+    currModel
+){
 
-}
+    function showUpdateButton() {
+        currModel(function (currentUserModel) {
+            if(currentUserModel.get('username') !== 'admin') {
+                $('.butMini').hide();
+                $('.deletePostButtonForm').hide();
+                $('.butAdd').show();
+            } else {
+                $('.butMini').show();
+                $('.butUpd').hide();
+                $('.deletePostButtonForm').show();
+            }
+        });
+    }
 
+    return showUpdateButton
+});

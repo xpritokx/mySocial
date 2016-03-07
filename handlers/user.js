@@ -4,8 +4,7 @@ var geoLock = require('../helpers/findLocation');
 
 
 module.exports = function () {
-    this.getOneUser = function(req, res, next) {
-        //var id = req.params.id;
+    this.getOneUser = function (req, res, next) {
         var id = req.session.user.userId;
         console.log('i get one user');
 
@@ -13,8 +12,8 @@ module.exports = function () {
             if (err) {
                 return next(err);
             }
-
             user.set({dist: geoLock(req.session.user.coords.latitude, user.coords.latitude, req.session.user.coords.longitude, user.coords.longitude)});
+
 
             res.status(200).send(user);
         });
@@ -28,9 +27,16 @@ module.exports = function () {
                 return next(err);
             }
 
-            for (i = 0; i < users.length; i++) {
-                users[i].set({dist: geoLock(req.session.user.coords.latitude, users[i].coords.latitude, req.session.user.coords.longitude, users[i].coords.longitude)});
-                console.log('geolockation for ', users[i].username, users[i].dist);
+            if (req.session.user) {
+                for (i = 0; i < users.length; i++) {
+                    users[i].set({dist: geoLock(req.session.user.coords.latitude, users[i].coords.latitude, req.session.user.coords.longitude, users[i].coords.longitude)});
+                    console.log('geolockation for ', users[i].username, users[i].dist);
+                }
+            } else {
+                for (i = 0; i < users.length; i++) {
+                    users[i].set({dist: geoLock(0, users[i].coords.latitude, 0, users[i].coords.longitude)});
+                    console.log('geolockation for ', users[i].username, users[i].dist);
+                }
             }
 
             res.status(200).send(users);
@@ -39,28 +45,6 @@ module.exports = function () {
     };
 
 
-    this.saveUser = function (req, res, next) {
-        var user = new UserDb(req.body);
-        console.log('Receive a POST request for registration');
-
-        for (var key in req.body) {
-            console.log(key + ": " + req.body[key])
-        }
-
-        user.save(function (err, doc) {
-            if (err) {
-                return next(err);
-            }
-            var to = user.get('email');
-            var title = 'Verification Public House';
-            var text = 'click to link for verification =) "localhost:3060/#connected_user/' + user.get('_id') + '"';
-            sendEmail(to ,title, text);
-
-            delete doc.hashedPassword;
-
-            res.status(200).send(doc);
-        })
-    };
 
     this.updateUser = function (req, res, next) {
         var id = req.params.id;

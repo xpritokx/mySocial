@@ -19,6 +19,7 @@ var DB_NAME;
 //database port ::27017
 var DB_PORT;
 
+
 var db;
 
 //option for connection to db
@@ -63,20 +64,17 @@ function onConnection() {
     //auth stack middleware
     var authStackMiddleware = require('./helpers/auth');
 
-    //declaration routers
-    var postRouter;
-    var userRouter;
-    var friendRouter;
-    var authRouter;
-    var indexRouter;
-
     port = parseInt(port, 10);
 
-    userRouter = require('./routes/users');
-    postRouter = require('./routes/posts');
-    friendRouter = require('./routes/friends');
-    authRouter = require('./routes/auth');
-    indexRouter = require('./routes/index');
+    //declaration routers
+    var userRouter = require('./routes/users');
+    var postRouter = require('./routes/posts');
+    var friendRouter = require('./routes/friends');
+    var authRouter = require('./routes/auth');
+    var indexRouter = require('./routes/index');
+    var restoreRouter = require('./routes/restore');
+    var registerRouter = require('./routes/register');
+
 
     console.log("database in connection");
 
@@ -86,7 +84,7 @@ function onConnection() {
     app.use(bodyParser.json());
     app.use(cookie());
     app.use(express.static(path.join(__dirname, '/public')));
-    app.use(favicon(__dirname + '/public/images/favicon1.ico'));
+    app.use(favicon(__dirname + '/public/images/favicon2.ico'));
 
     //required store for save sessions
     var MongoStore = require('connect-mongo')(sessions);
@@ -109,11 +107,17 @@ function onConnection() {
 
     //ROUTES
 
+    app.use('/users', registerRouter);
     app.use('/users', authStackMiddleware, userRouter);
     app.use('/posts', authStackMiddleware, postRouter);
     app.use('/friends', authStackMiddleware, friendRouter);
+
     app.use('/userLog', authRouter);
-    app.use('/', indexRouter);
+    app.use('/sendRestore', restoreRouter);
+    app.use('/', authStackMiddleware,indexRouter);
+
+
+
 
     app.use(function (err, req, res, next) {
         var status = err.status || 500;

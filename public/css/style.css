@@ -126,17 +126,6 @@ footer {
     text-align: center;
 }
 
-#avatar {
-    float: right;
-    margin-bottom: 50px;
-
-}
-
-#ava {
-    width: 150px;
-    height: 150px;
-    opacity: 0.9;
-}
 
 
 #containerUpload2 {
@@ -187,9 +176,7 @@ footer {
 
 }
 
-#delPostBut {
-    margin-top: 0px;
-}
+
 
 
 #viewContentHeader {
@@ -211,6 +198,19 @@ footer {
 
 /*  CSS CLASSES  */
 
+.avatar {
+    float: right;
+    margin-bottom: 50px;
+
+}
+
+.ava {
+    width: 150px;
+    height: 150px;
+    opacity: 0.9;
+}
+
+
 .but {
     text-align: center;
     font-family: franklin gothic medium, serif;
@@ -229,7 +229,21 @@ footer {
     cursor: pointer;
 }
 
+.deletePostButtonForm {
+    text-align: center;
+    font-family: franklin gothic medium, serif;
+    font-size: 25px;
+    padding: 4px;
+    background-color: greenyellow;;
+    height: 40px;
+    width: 150px;
+    display: inline-block;
+}
 
+.deletePostButtonForm:hover {
+    background-color: red;
+    cursor: pointer;
+}
 
 .menuName {
     cursor: pointer;
