@@ -8,7 +8,7 @@ define([
     UserPageModel
 ){
 
-    var currModel = function (func) {
+    function currModel (func) {
         var modelInstance = new UserPageModel({_id: 'id_for_URL/:id'});
 
         modelInstance.on('change', function () {

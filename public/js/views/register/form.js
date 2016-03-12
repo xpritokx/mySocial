@@ -34,7 +34,7 @@ define([
                     'address' : $('#editAddressReg').val()
                 }, {
                     success: function(response) {
-                        router.navigate('#main', {trigger: true});
+                        GLOBAL.router.navigate('#main', {trigger: true});
                         console.log("Successfully REGISTER User!!!))) with id " + response.toJSON()._id);
                     },
                     error: function () {

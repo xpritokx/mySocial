@@ -1,4 +1,5 @@
 var UserDb = require('../models/user').User;
+var ChatDb = require('../models/message').Message;
 var fs = require('fs');
 var sendEmail = require('../helpers/sendEmail');
 var multiparty = require('multiparty');
@@ -65,6 +66,4 @@ module.exports = function() {
             });
         });
     };
-
-
 };

@@ -67,13 +67,15 @@ function onConnection() {
     port = parseInt(port, 10);
 
     //declaration routers
+    var chatRouter = require('./routes/chat');
+    var authRouter = require('./routes/auth');
     var userRouter = require('./routes/users');
     var postRouter = require('./routes/posts');
-    var friendRouter = require('./routes/friends');
-    var authRouter = require('./routes/auth');
     var indexRouter = require('./routes/index');
+    var friendRouter = require('./routes/friends');
     var restoreRouter = require('./routes/restore');
     var registerRouter = require('./routes/register');
+    var correspondenceRouter = require('./routes/correspondence');
 
 
     console.log("database in connection");
@@ -111,6 +113,8 @@ function onConnection() {
     app.use('/users', authStackMiddleware, userRouter);
     app.use('/posts', authStackMiddleware, postRouter);
     app.use('/friends', authStackMiddleware, friendRouter);
+    app.use('/chat', authStackMiddleware, chatRouter);
+    app.use('/correspondence',  correspondenceRouter);
 
     app.use('/userLog', authRouter);
     app.use('/sendRestore', restoreRouter);

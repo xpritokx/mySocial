@@ -26,5 +26,7 @@ require.config({
 require(['app'], function (app) {
     app.init();
 
+    //socket = io.connect();
+
     Backbone.history.start();
 });

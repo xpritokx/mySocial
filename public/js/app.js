@@ -16,10 +16,13 @@ define([
     'views/register/form',
     'views/login/form',
     'views/restore/form',
+    'views/chat/chat',
+    'views/correspondence/correspondence',
 
     'collections/friend',
 
     'helpers/currModel',
+    'helpers/hideFriends',
     'helpers/showUpdateButton',
 
     'text!templates/welcomePage.html',
@@ -48,10 +51,13 @@ define([
     RegisterPageView,
     LoginPageView,
     RestorePageView,
+    ChatView,
+    CorrespondenceView,
 
     FriendsPagesCollection,
 
     currModel,
+    hideFriends,
     showUpdateButton,
 
     welcomeTemp,
@@ -65,11 +71,19 @@ define([
     var userViewInstance;
     var postsViewInstance;
     var friendsViewInstance;
-    //router;
+    var chatViewInstance;
+    var correspondenceViewInstance;
 
     var userColInstance;
     var postColInstance;
     var friendsColInstance;
+    var chatColInstance;
+
+    //router;
+
+    GLOBAL = {};
+
+
 
 
     function init () {
@@ -81,22 +95,48 @@ define([
 
 
 
-        initUsers();
-        initFriends();
-        initPosts();
+        GLOBAL.initUsers();
+        GLOBAL.initFriends();
+        GLOBAL.initPosts();
 
     }
 
-    initUsers = function () {
+    GLOBAL.getUserInstance = function () {
+        return userViewInstance
+    };
+
+    GLOBAL.getFriendsInstance = function () {
+        return friendsViewInstance
+    };
+
+    GLOBAL.initUsers = function () {
         return userViewInstance = new UserPagesView({collection: userColInstance});
     };
 
-    initPosts = function () {
+    GLOBAL.initPosts = function () {
         return postsViewInstance = new PostsView({collection: postColInstance});
     };
 
-    initFriends = function () {
+    GLOBAL.initFriends = function () {
         friendsViewInstance = new UserPagesView({collection: friendsColInstance});
+        return friendsViewInstance
+    };
+
+    GLOBAL.initChat = function (currentUserModel) {
+        if (!chatViewInstance) {
+            chatViewInstance = new ChatView({model: currentUserModel});
+        } else {
+            chatViewInstance.render();
+        }
+    };
+
+    GLOBAL.initCorrespondence = function (model) {
+        if (!correspondenceViewInstance) {
+            correspondenceViewInstance = new CorrespondenceView({model: model});
+        } else {
+            correspondenceViewInstance.model = model;
+            correspondenceViewInstance.render();
+        }
     };
 
     Backbone.Model.prototype.idAttribute = "_id";
@@ -116,7 +156,9 @@ define([
             'changeLogo'        : 'changeLogo',
             'restorePage'       : 'restore',
             'restorePass/:token': 'restorePass',
-            'chat'              : 'chat'
+            'chat'              : 'chat',
+            'findLoc'           : 'locationFind',
+            'correspondence/:id': 'correspondence'
         },
         main: function() {
             currModel(function (currentUserModel) {
@@ -125,6 +167,7 @@ define([
 
                     $('#posts-list').html('');
                     $('#containerHeader').hide();
+
                     $('#welcomeBlock').html('').css({opacity: 0}).animate(
                         {opacity: 1},
                         2000
@@ -136,34 +179,39 @@ define([
                     $('#register-block').hide().html('');
                     $('#login-block').hide().html('');
                     $('#signOutBut').hide();
+                    $('#findLock').hide();
+
                 } else {
                     console.log('cur = ', currentUserModel);
-                    router.navigate('/connected_user/' + currentUserModel.get('_id'), {trigger: true});
+                    GLOBAL.router.navigate('/connected_user/' + currentUserModel.get('_id'), {trigger: true});
                 }
             });
 
         },
+
         changeLogo: function () {
             console.log('We come to PAGE FOR CHANGE AVATAR now');
 
             currModel(function (currentUserModel) {
                 $('#containerHeaderBlock').html('').show().append(_.template(uploadFilePageTemp));
+
                 $('#signOutBut').show();
                 $('#posts-list').html('');
-
                 $('#postsBlock').hide();
                 $('#register-block').hide().html('');
                 $('#login-block').hide().html('');
                 $('#signBut').hide();
                 $('#regBut').hide();
+                $('#findLock').hide();
             });
-
         },
+
         sendEmail: function() {
             console.log('We come to WELCOME PAGE now');
 
             currModel(function (currentUserModel) {
                 $('#containerHeaderBlock').html('').show().append(_.template(sendInvitePageTemp));
+
                 $('#signForSendEmailBut').show();
 
                 $('#posts-list').html('');
@@ -172,9 +220,10 @@ define([
                 $('#login-block').hide().html('');
                 $('#signBut').hide();
                 $('#regBut').hide();
+                $('#findLock').hide();
             });
-
         },
+
         showPosts: function() {
             console.log('We come to POSTS PAGE now');
             currModel(function (currentUserModel) {
@@ -183,6 +232,7 @@ define([
                 $('#posts-list').html('');
                 $('#postsBlock').show();
                 $('#post-block').show();
+
                 $('#placeForPostBlock').html('').show().append(_.template(postBlockPageTemp));
 
                 $('#register-block').hide().html('');
@@ -191,11 +241,17 @@ define([
                 $('#signOutBut').show();
                 $('#signBut').hide();
                 $('#regBut').hide();
-                initUsers();
-                initPosts();
+                $('#findLock').hide();
+
+                GLOBAL.initUsers();
+                GLOBAL.initPosts();
+
+                $('.butKick').hide();
+                $('.butWrite').hide();
                 showUpdateButton();
             });
         },
+
         showFriends: function() {
             console.log('We come to SHOW FRIENDS PAGE now');
             currModel(function (currentUserModel) {
@@ -209,12 +265,20 @@ define([
                 $('#signOutBut').show();
                 $('#signBut').hide();
                 $('#regBut').hide();
-                initFriends();
+                $('#findLock').hide();
+
+                GLOBAL.initFriends();
+
                 $('.butMini').hide();
+                $('.butKick').show();
+                $('.butWrite').show();
             });
         },
+
         showUsers: function () {
+            var masFriends;
             console.log('We come to FIND USERS PAGE now');
+
             currModel(function (currentUserModel) {
                 $('#posts-list').html('');
                 $('#postsBlock').hide();
@@ -226,78 +290,118 @@ define([
                 $('#signOutBut').show();
                 $('#signBut').hide();
                 $('#regBut').hide();
-                initUsers();
+                $('#findLock').show();
+
+                GLOBAL.initUsers();
+
+                hideFriends(currentUserModel);
+
                 showUpdateButton();
+
+
             });
         },
+
         register: function() {
-            console.log('We come to REGISTRATION PAGE now');
+            currModel(function (currentUserModel) {
+                if (!currentUserModel) {
+                    console.log('We come to REGISTRATION PAGE now');
 
-            $('#posts-list').html('');
-            $('#postsBlock').hide();
-            $('#login-block').hide().html('');
-            $('#welcomeBlock').hide();
-            $('#containerHeader').hide();
-            //$('#register-block').html('').show();
+                    $('#posts-list').html('');
+                    $('#postsBlock').hide();
+                    $('#login-block').hide().html('');
+                    $('#welcomeBlock').hide();
+                    $('#containerHeader').hide();
+                    $('#findLock').hide();
 
-            $('#signOutBut').hide();
-            $('#signBut').show();
-            $('#regBut').show();
+                    $('#signOutBut').hide();
+                    $('#signBut').show();
+                    $('#regBut').show();
 
-            new RegisterPageView();
-
+                    new RegisterPageView();
+                } else {
+                    console.log('cur = ', currentUserModel);
+                    GLOBAL.router.navigate('/connected_user/' + currentUserModel.get('_id'), {trigger: true});
+                }
+            });
         },
         login: function() {
-            console.log('We come to LOGIN PAGE now');
+            currModel(function (currentUserModel) {
+                if (!currentUserModel) {
+                    console.log('We come to LOGIN PAGE now');
 
-            $('#posts-list').html('');
-            $('#welcomeBlock').hide();
-            $('#postsBlock').hide();
-            $('#containerHeader').hide();
-            $('#register-block').hide().html('');
-            //$('#login-block').html('').show();
-            $('#signOutBut').hide();
-            $('#signBut').show();
-            $('#regBut').show();
-            console.log('now login');
-            new LoginPageView();
+                    $('#posts-list').html('');
+                    $('#welcomeBlock').hide();
+                    $('#postsBlock').hide();
+                    $('#containerHeader').hide();
+                    $('#findLock').hide();
+                    $('#register-block').hide().html('');
+                    $('#signOutBut').hide();
+                    $('#signBut').show();
+                    $('#regBut').show();
+                    console.log('now login');
+                    new LoginPageView();
+                } else {
+                    console.log('cur = ', currentUserModel);
+                    GLOBAL.router.navigate('/connected_user/' + currentUserModel.get('_id'), {trigger: true});
+                }
+            });
         },
         restore: function() {
-            console.log('We come to RESTORE PASSWORD PAGE now');
+            currModel(function (currentUserModel) {
+                if (!currentUserModel) {
+                    console.log('We come to RESTORE PASSWORD PAGE now');
 
-            $('#posts-list').html('');
-            $('#welcomeBlock').hide();
-            $('#postsBlock').hide();
-            $('#containerHeader').hide();
-            $('#register-block').hide().html('');
-            $('#login-block').html('').hide().append(_.template(restoreTemp)).slideDown('slow');
-            $('#signOutBut').hide();
-            $('#signBut').show();
-            $('#regBut').show();
+                    $('#posts-list').html('');
+                    $('#welcomeBlock').hide();
+                    $('#postsBlock').hide();
+                    $('#containerHeader').hide();
+                    $('#register-block').hide().html('');
+                    $('#login-block').html('').hide().append(_.template(restoreTemp)).slideDown('slow');
+                    $('#signOutBut').hide();
+                    $('#findLock').hide();
+
+                    $('#signBut').show();
+                    $('#regBut').show();
+                } else {
+                    console.log('cur = ', currentUserModel);
+                    GLOBAL.router.navigate('/connected_user/' + currentUserModel.get('_id'), {trigger: true});
+                }
+            });
         },
         restorePass: function (token) {
-            console.log('We come to RESTORE PASSWORD PAGE 2 now');
+            currModel(function (currentUserModel) {
+                if (!currentUserModel) {
+                    console.log('We come to RESTORE PASSWORD PAGE 2 now');
 
-            $('#posts-list').html('');
-            $('#welcomeBlock').hide();
-            $('#postsBlock').hide();
-            $('#containerHeader').hide();
-            $('#register-block').hide().html('');
-            $('#signOutBut').hide();
-            $('#signBut').show();
-            $('#regBut').show();
-            console.log('token: ', token);
-            model = new ChangeStateModel({_id: token});
-            console.log('WTF???');
-            new RestorePageView({model: model});
+                    $('#posts-list').html('');
+                    $('#welcomeBlock').hide();
+                    $('#postsBlock').hide();
+                    $('#containerHeader').hide();
+                    $('#register-block').hide().html('');
+                    $('#signOutBut').hide();
+                    $('#findLock').hide();
+
+                    $('#signBut').show();
+                    $('#regBut').show();
+                    console.log('token: ', token);
+                    model = new ChangeStateModel({_id: token});
+                    console.log('WTF???');
+                    new RestorePageView({model: model});
+                } else {
+                    console.log('cur = ', currentUserModel);
+                    GLOBAL.router.navigate('/connected_user/' + currentUserModel.get('_id'), {trigger: true});
+                }
+            });
         },
         connUser: function(id){
             console.log('We come to USER PAGE now');
 
             var Number;
 
-            initPosts();
-            initUsers();
+            GLOBAL.initPosts();
+            GLOBAL.initUsers();
+            GLOBAL.getFriendsInstance().getDataToCollection();
             //show and hide buttons
             $('#posts-list').html('');
             $('#post-block').show();
@@ -305,10 +409,12 @@ define([
             $('#register-block').hide();
             $('#login-block').hide();
             $('#welcomeBlock').hide();
-
-            $('#signOutBut').show();
+            $('#findLock').hide();
             $('#signBut').hide();
             $('#regBut').hide();
+
+
+            $('#signOutBut').show();
             $('.butMini').show();
 
             $('#containerHeader').show();
@@ -331,6 +437,9 @@ define([
                 }
 
                 //show and hide buttons
+                $('.butDel').hide();
+                $('.butKick').hide();
+                $('.butWrite').hide();
                 $('.butAdd').hide();
             });
         },
@@ -338,24 +447,92 @@ define([
             currModel(function (currentUserModel) {
                 console.log('We come to CHAT now');
 
-                $('#containerHeaderBlock').html('').show().append(_.template(chatTemp));
                 $('#showMessages').html('');
                 $('#signForSendEmailBut').show();
+                $('#findLock').hide();
 
                 $('#posts-list').html('');
                 $('#postsBlock').hide();
                 $('#register-block').hide().html('');
                 $('#login-block').hide().html('');
+                GLOBAL.initChat(currentUserModel);
+
                 $('#signBut').hide();
                 $('#regBut').hide();
             });
+        },
+        correspondence: function(id) {
+
+            currModel(function (currentUserModel) {
+                //console.log(friendsColInstance);
+                var model = new Backbone.Model({
+                    user: currentUserModel,
+                    opponent: friendsColInstance.where({_id: id})
+                });
+
+                console.log('We come to CORRESPONDENCE now');
+                console.log('user = ', model.get('user'), 'opponent = ', model.get('opponent') );
+
+                $('#showMessages').html('');
+                $('#signForSendEmailBut').show();
+                $('#findLock').hide();
+
+                $('#posts-list').html('');
+                $('#postsBlock').hide();
+                $('#register-block').hide().html('');
+                $('#login-block').hide().html('');
+
+                GLOBAL.initCorrespondence(model);
+
+                $('#signBut').hide();
+                $('#regBut').hide();
+            });
+        },
+        locationFind: function() {
+            currModel(function (currentUserModel) {
+                var findForDist;
+
+                console.log('We come to findLocate page');
+                console.log('val of find = ', $('#editKm').val());
+
+                $('#posts-list').html('');
+                $('#postsBlock').hide();
+                $('#containerHeader').show();
+                $('#containerHeaderBlock').html('').show();
+                $('#register-block').hide().html('');
+                $('#login-block').hide().html('');
+                $('#welcomeBlock').hide();
+                $('#signOutBut').show();
+                $('#signBut').hide();
+                $('#regBut').hide();
+                $('#findLock').show();
+
+                console.log('uCI ',userColInstance);
+
+                findForDist = _.filter(userColInstance.toArray(), function(model) {
+                    var dist1 = parseFloat($('#editKm').val());
+                    var dist2 = parseFloat(model.get('dist'));
+                    console.log('dist1 => ',dist1);
+                    console.log('dist2 => ',dist2);
+
+                    return dist1 >=  dist2;
+                });
+
+                findForDist.forEach(function(model) {
+                    var nupv = new NewUserPageView({model: model});
+                    $('#containerHeaderBlock').append(nupv.render().el);
+                });
+
+                hideFriends(currentUserModel);
+
+                showUpdateButton();
+            })
         }
     });
 
-    router = new Router();
+    GLOBAL.router = new Router();
 
     return {
-        init: init,
-        router: router
+        init: init
     }
 });

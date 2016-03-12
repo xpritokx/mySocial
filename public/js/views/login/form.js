@@ -59,8 +59,8 @@ define([
                         success: function (model) {
                             console.log('Successfully Save Data!))) with id ' + model.toJSON()._id);
                             console.log("username this user is " + model.toJSON().username);
-                            currentUserModel = model;
-                            router.navigate('/connected_user/' + model.toJSON()._id, {trigger: true});
+                            //currentUserModel = model;
+                            GLOBAL.router.navigate('/connected_user/' + model.toJSON()._id, {trigger: true});
                         },
                         error: function () {
                             console.log("Failed Save LOGIN data((((")

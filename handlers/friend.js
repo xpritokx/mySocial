@@ -96,6 +96,43 @@ module.exports = function () {
         }
     };
 
+    this.delFromFriends = function(req, res, next) {
+        var idUser = req.session.user.userId;
+        var idOpponent = req.params.id;
+
+        UserDb.findById(idUser, function (err, user) {
+            if (err) {
+                return next(err);
+            }
+
+            var friendsUser = user.get('friends');
+            console.log('friendsUser', friendsUser);
+            friendsUser.splice(friendsUser.indexOf(idOpponent), 1);
+            console.log('friendsUser after', friendsUser);
+
+            UserDb.update({_id: idUser}, {friends: friendsUser}, function () {
+                console.log('User Friends Updated!');
+            });
+
+            UserDb.findById(idOpponent, function (err, user) {
+                if (err) {
+                    return next(err);
+                }
+
+                var friendsOpponent = user.get('friends');
+                console.log('friendsOpponent', friendsOpponent);
+                friendsOpponent.splice(friendsOpponent.indexOf(idUser), 1);
+                console.log('friendsUser Opponent', friendsOpponent);
+
+                UserDb.update({_id: idOpponent}, {friends: friendsOpponent}, function () {
+                    console.log('Opponent Friends Updated!');
+                });
+
+                res.status(200).send({response: true})
+            })
+        })
+    };
+
     this.delFriend = function(req, res, next) {
         var id = req.params.id;
         console.log('Receive a DELETE request for _id: ' + id);
@@ -109,5 +146,6 @@ module.exports = function () {
 
             res.status(200).send(user);
         });
-    }
+    };
+
 };

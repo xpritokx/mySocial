@@ -23,10 +23,7 @@ define([
                 success: function(response) {
                     console.log("Successfully DELETED post with id " + response.toJSON()._id);
                     $('#posts-list').html('');
-                    initPosts();
-                    //postsViewInstance().render();
-                    //console.log('app router ', app);
-                    //router.navigate('/', {trigger: true})
+                    GLOBAL.initPosts();
                 },
                 error: function(){
                     console.log("Failed to delete post!")

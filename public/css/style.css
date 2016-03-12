@@ -11,6 +11,14 @@ a {
     cursor: pointer;
 }
 
+input:focus {
+    outline-color: greenyellow;
+}
+
+input:hover {
+    outline-color: greenyellow;
+}
+
 input[type=file] {
     margin: 10px auto;
 }
@@ -112,6 +120,14 @@ footer {
     color: red;
 }
 
+#editMess {
+    display: block
+}
+
+#editMessUser {
+    display: block
+}
+
 #logo {
     font-family: franklin gothic medium, serif;
     font-size: 50px;
@@ -153,7 +169,7 @@ footer {
     width: 79%;
     border-left-style: solid;
     border-color: greenyellow;
-
+    text-overflow: ellipsis;
     background-color: white;
     /*background-color: RGBA(173, 255, 47, 0.2);*/
 }
@@ -176,7 +192,9 @@ footer {
 
 }
 
-
+#findLock {
+    display: inline-block;
+}
 
 
 #viewContentHeader {
@@ -194,6 +212,7 @@ footer {
     width: 100%;
     text-align: center;
 }
+
 
 
 /*  CSS CLASSES  */
@@ -223,9 +242,52 @@ footer {
     background-color: greenyellow;
 }
 
+
+
 .but:hover {
     background-color: red;
     height: 80px;
+    cursor: pointer;
+}
+
+.chatImg {
+    width: 20px;
+    height: 20px;
+    display: inline-block;
+}
+
+.blockForChatText {
+    width: 250px;
+    word-break: break-all;
+    margin: auto;
+}
+
+.sendInToChatButton {
+    text-align: center;
+    font-family: franklin gothic medium, serif;
+    font-size: 25px;
+    padding: 4px;
+    background-color: greenyellow;;
+    height: 40px;
+    width: 150px;
+    display: inline-block;
+    /*display: none;*/
+}
+
+.sendInToCorrButton {
+    text-align: center;
+    font-family: franklin gothic medium, serif;
+    font-size: 25px;
+    padding: 4px;
+    background-color: yellow;;
+    height: 40px;
+    width: 150px;
+    display: inline-block;
+    /*display: none;*/
+}
+
+.sendInToCorrButton:hover {
+    background-color: red;
     cursor: pointer;
 }
 
@@ -241,6 +303,11 @@ footer {
 }
 
 .deletePostButtonForm:hover {
+    background-color: red;
+    cursor: pointer;
+}
+
+.sendInToChatButton:hover {
     background-color: red;
     cursor: pointer;
 }
@@ -290,4 +357,24 @@ footer {
 .butMini:hover {
     background-color: red;
     cursor: pointer;
+}
+
+.butKick{
+    background-color: yellow;
+    float: right;
+    margin-bottom: 50px
+}
+
+.butKick:hover {
+    background-color: red;
+}
+
+.butWrite{
+    background-color: yellow;
+    float: right;
+    margin-bottom: 50px
+}
+
+.butWrite:hover {
+    background-color: red;
 }

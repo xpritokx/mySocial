@@ -10,9 +10,13 @@ define([
                 $('.butMini').hide();
                 $('.deletePostButtonForm').hide();
                 $('.butAdd').show();
+                $('.butKick').hide();
+                $('.butWrite').hide();
             } else {
                 $('.butMini').show();
                 $('.butUpd').hide();
+                $('.butKick').hide();
+                $('.butWrite').hide();
                 $('.deletePostButtonForm').show();
             }
         });

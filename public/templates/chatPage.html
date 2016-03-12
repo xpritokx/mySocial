@@ -1,56 +1,9 @@
 
 <div id="containerUpload2">
     <h1>Chat for friends</h1>
-    <form id="chatForm">
-        <input id="editMess" style="width: 250px; margin: auto"  autocomplete="off" autofocus placeholder="Message..." >
-    </form>
-    <ul id="showMessages">
-
-    </ul>
+    <input id="editMess" style="width: 250px; margin: auto"  autocomplete="off" autofocus placeholder="Message..." >
+    <div class="sendInToChatButton">send</div>
+    <ul id="showMessages"></ul>
 </div>
-<script>
-
-    var socket = io.connect('', {
-        'reconnection delay': 1
-    });
-
-    var input = $('#editMess');
-    var form = $('#chatForm');
-    var ul = $('#showMessages');
-
-    socket.on('message', function (text) {
-        if (text.text) {
-            printMessage(text.username, text.text);
-        }
-    }).on('connect', function () {
-        console.log('CHAT connection is setting');
-
-        printMessage('connection is setting');
-        form.submit(sendMessage);
-        input.prop('disabled', false);
-    }).on('disconnect', function () {
-        console.log('CHAT connection is lost');
-
-        printMessage('connection is lost');
-        form.off('submit', sendMessage);
-        input.prop('disabled', true);
-    });
-
-    function sendMessage () {
-        var text = input.val();
-        socket.emit('message', {
-            text: text
-        });
-
-
-        input.val('');
-        return false;
-    }
-
-    function printMessage(user, text) {
-        ul.append('<li>' + user + ' => ' + text + '</li>')
-    }
-
-</script>
 
 

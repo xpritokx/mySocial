@@ -8,7 +8,11 @@
     <h6>i live in</h6>
     <h4> <%= address %> </h4>
     <h6> this user locate at you on</h6>
-    <h4> <%= dist %> </h4>
+    <h4>
+        <a href='https://www.google.com.ua/maps/search/<%= coords.latitude %>,<%= coords.longitude %>' target="_blank">
+            <%= dist %>
+        </a>
+    </h4>
 </div>
 <div style="width: 20%; display: inline-block">
     <div class = "avatar">
@@ -22,6 +26,12 @@
     </div>
     <div class="butMini butAdd" style="float: right; margin-bottom: 50px">
         add
+    </div>
+    <div class="butMini butWrite">
+        write
+    </div>
+    <div class="butMini butKick">
+        kick
     </div>
 </div>
 <hr size="5" color="greenyellow">
