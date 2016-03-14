@@ -8,6 +8,7 @@ define([
     Backbone,
     _
 ) {
+    //function for hiding friends
     function hideFriends(currentUserModel) {
         var masFriends = currentUserModel.get('friends');
         masFriends.forEach(function (classEl) {

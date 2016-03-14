@@ -1,6 +1,3 @@
-/**
- * Created by Pritok on 04.03.2016.
- */
 var express = require('express');
 var router = express.Router();
 var Handler = require('../handlers/register');

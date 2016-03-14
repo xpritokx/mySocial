@@ -22,79 +22,87 @@ define([
 
         template: _.template(tempUser),
 
-        initialize: function(){
-            this.model.on('destroy', function() {
+        initialize: function () {
+
+            this.model.on('destroy', function () {
                 this.remove();
                 GLOBAL.getUserInstance().getDataToCollection();
                 showUpdateButton();
             }, this);
+
             this.on('fromFriendDelete', function () {
                 GLOBAL.getFriendsInstance().getDataToCollection();
+                //GLOBAL.getUserInstance().getDataToCollection();
+
                 this.remove();
             }, this);
+
         },
 
         events: {
-            'click .butDel'              : 'deleteUser',
-            'click .butUpd'              : 'showUpdateForm',
-            'click .updateUserButtonForm': 'updateUser',
-            'click .butAdd'              : 'addUserToFriends',
-            'click .butKick'             : 'kickUserFromFriends',
-            'click .butWrite'            : 'redirectToCorrespondence'
+            'click .butDel'                    : 'deleteUser',
+            'click .butUpd'                    : 'showUpdateForm',
+            'click .updateUserButtonForm'      : 'updateUser',
+            'click .cancelUpdateUserButtonForm': 'cancelUpdateUser',
+            'click .butAdd'                    : 'addUserToFriends',
+            'click .butKick'                   : 'kickUserFromFriends',
+            'click .butWrite'                  : 'redirectToCorrespondence'
         },
 
-        addUserToFriends: function() {
+        //adding user to friends
+        addUserToFriends: function () {
             var self = this;
             var modelForAddFriend = new FriendModel();
-            modelForAddFriend.set({
+
+            modelForAddFriend.save({
                 userId: this.model.get('_id')
-            });
-            modelForAddFriend.save(null, {
-                success: function(response) {
+            }, {
+                success: function (response) {
                     console.log("Adding user is success");
                     console.log("firstUser = ", response.toJSON().firstUser);
                     console.log("secondUser = ", response.toJSON().secondUser);
                     GLOBAL.getFriendsInstance().getDataToCollection();
+                    //GLOBAL.getUserInstance().getDataToCollection();
                     self.remove()
                 },
-                error: function() {
+                error: function () {
                     console.log("Adding user is failed!");
                 }
             });
         },
 
+        //action when user clicked on the 'WRITE' button
         redirectToCorrespondence: function () {
             GLOBAL.router.navigate('#correspondence/' + this.model.get('_id'), {trigger: true});
         },
 
+        //showing form for update in user page
         showUpdateForm: function () {
-            $('#formUpdate').remove();
+            var $formUpdate = $('#formUpdate');
+
+            $formUpdate.remove();
             this.$el.show().append(_.template(tempUpdateUser));
-
-            var username = this.$('#lab1').html();
-            var email = this.$('#lab2').html();
-            var birthday = this.$('#lab3').html();
-            var address = this.$('#lab4').html();
-
-            $('#editUsernameUpd').val(username);
-            $('#editEmailUpd').val(email);
-            $('#editBirthdayUpd').val(birthday);
-            $('#editAddressUpd').val(address);
         },
 
+        //deleting user from friends
         kickUserFromFriends: function () {
             var self = this;
             var kickModel = this.model;
-            kickModel.urlRoot = function() {
+            kickModel.urlRoot = function () {
                 return '/friends/'
             };
             console.log('del for friends! ', this.model.get('username'));
             kickModel.save(null, {
                 success: function (response) {
+                    var $butMini = $('.butMini');
+                    var $butWrite = $('.butWrite');
+                    var $butKick = $('.butKick');
+
                     console.log('deleted from friends user ' + response.toJSON().response);
                     self.trigger('fromFriendDelete');
-                    $('.butMini').hide();
-                    $('.butKick').show();
+                    $butMini.hide();
+                    $butWrite.show();
+                    $butKick.show();
                 },
                 error: function () {
                     console.log('friend do not deleted from friends(((');
@@ -102,42 +110,57 @@ define([
             });
         },
 
-        updateUser: function() {
+        //hiding form for update in user page
+        cancelUpdateUser: function () {
+            var $formUpdate = $('#formUpdate');
+
+            $formUpdate.remove();
+        },
+
+        //sending update data on server
+        updateUser: function () {
+            var $editUsernameUpd = $('#editUsernameUpd');
+            var $editEmailUpd = $('#editEmailUpd');
+            var $editBirthdayUpd = $('#editBirthdayUpd');
+            var $editAddressUpd = $('#editAddressUpd');
+            var $viewContentHeader = $('#viewContentHeader');
+
             this.model.save({
-                'username' : $('#editUsernameUpd').val(),
+                'username' : $editUsernameUpd.val(),
                 'password' : '1234567',
-                'email'    : $('#editEmailUpd').val(),
-                'birthday' : $('#editBirthdayUpd').val(),
-                'address'  : $('#editAddressUpd').val()
+                'email'    : $editEmailUpd.val(),
+                'birthday' : $editBirthdayUpd.val(),
+                'address'  : $editAddressUpd.val()
             }, {
-                success: function(response) {
+                success: function (response) {
                     console.log("Successfully UPDATE Data!))) with id " + response.toJSON()._id);
                 },
-                error: function(){
+                error: function () {
                     console.log("Failed Save data((((");
                 }
             });
 
-            $('#viewContentHeader').hide();
-            GLOBAL.initUsers();
+            $viewContentHeader.hide();
+            GLOBAL.getUserInstance().getDataToCollection();
             GLOBAL.router.navigate('#main', {trigger: true});
         },
 
-        deleteUser: function() {
+        //deleting user from db
+        deleteUser: function () {
             if (confirm('you sure, that want to delete user ' + this.model.get('username'))) {
+
                 this.model.destroy({
-                    success: function(response) {
+                    success: function (response) {
                         console.log("Successfully DELETED user with id " + response.toJSON()._id);
                     },
-                    error: function(){
+                    error: function () {
                         console.log("Failed to DELETE user!")
                     }
                 });
             }
         },
 
-        render: function(){
-            console.log("NU ", this.model.toJSON());
+        render: function () {
             this.$el.html(this.template(this.model.toJSON())).addClass(this.model.get('_id'));
             return this
         }

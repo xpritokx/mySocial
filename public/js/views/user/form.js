@@ -14,12 +14,9 @@ define([
     var UserPagesView = Backbone.View.extend({
         el: $('#containerHeaderBlock'),
         initialize: function() {
-            var self = this;
-            console.log("UserPagesView this.collection = ", this.collection);
-            //this.listenToOnce(this.collection, 'change', this.render);
+            //var self = this;
             this.getDataToCollection();
-            //this.collection.once('reset', self.render, self);
-            self.render();
+            this.render();
         },
         getDataToCollection: function () {
             this.collection.fetch(
@@ -29,6 +26,7 @@ define([
                         console.log('user is GET' );
                     },
                     error: function(col, res){
+
                         console.log('Failed to get blogs');
                     }
                 }
@@ -36,7 +34,6 @@ define([
         },
 
         render: function() {
-            console.log("i in UserPages ready to render!");
             this.collection.each(function(myModel) {
                 var userViewInstance = new NewUserPageView({model: myModel});
                 this.$el.append(userViewInstance.render().el);

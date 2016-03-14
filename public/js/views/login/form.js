@@ -23,7 +23,6 @@ define([
         template: _.template(temp),
 
         initialize: function () {
-            console.log('init log blog');
             this.render();
         },
         events: {
@@ -59,7 +58,6 @@ define([
                         success: function (model) {
                             console.log('Successfully Save Data!))) with id ' + model.toJSON()._id);
                             console.log("username this user is " + model.toJSON().username);
-                            //currentUserModel = model;
                             GLOBAL.router.navigate('/connected_user/' + model.toJSON()._id, {trigger: true});
                         },
                         error: function () {

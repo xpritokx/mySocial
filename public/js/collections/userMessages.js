@@ -1,6 +1,3 @@
-/**
- * Created by Pritok on 11.03.2016.
- */
 define([
     'Backbone',
     'models/userMessage'
@@ -8,6 +5,7 @@ define([
     Backbone,
     MessageForUserModel
 ) {
+    //collection for output models of user correspondence
     var MessagesForUserColl = Backbone.Collection.extend({
         model: MessageForUserModel,
         url: '/correspondence'

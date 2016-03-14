@@ -6,6 +6,7 @@ define([
 ], function (
     Backbone
 ) {
+    //model exchange data for chat
     var MessageModel = Backbone.Model.extend({
         urlRoot: function(){
             return '/chat'

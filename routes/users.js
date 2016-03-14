@@ -13,8 +13,10 @@ router.get('/:id', handler.getOneUser);
 //deleting user by id (deleteUser)
 router.put('/:id', handler.updateUser);
 
+
 //updating user by id (updateUser)
 router.delete('/:id', handler.deleteUser);
+
 
 module.exports = router;
 

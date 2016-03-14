@@ -1,26 +1,26 @@
-/**
- * Created by Pritok on 29.02.2016.
- */
 var UserDb = require('../models/user').User;
 var mongoose = require('mongoose');
 
-module.exports = function(server){
+module.exports = function (server) {
     var io = require('socket.io')(server);
+
+    //creading namespace
+    var my_nps = io.of('/my_namespace');
 
     //setting filter on domens
     io.set('origins', 'localhost:8088');
 
-    var my_nps = io.of('/my_namespace');
+    //event onConnection
+    my_nps.on('connection', function (socket) {
 
-    my_nps.on('connection', function(socket) {
-
+        //checking messave on event 'userChatStatus' for enter or exit with room
         socket.on('userChatStatus', function (data) {
-            console.log('printing user status');
             var roomNumber = data.user._id + data.opponent[0]._id;
             var roomNumber2 = data.opponent[0]._id + data.user._id;
 
+            //if text => leaved that user exit with room else not user enter to room
             if (data.text === 'leaved') {
-                console.log('leaved');
+                console.log('user is leaved');
                 if (my_nps.adapter.rooms[roomNumber]) {
                     socket.leave(roomNumber);
                     my_nps.to(roomNumber).emit('userChatStatusClient', {
@@ -35,6 +35,7 @@ module.exports = function(server){
                     });
                 }
             } else {
+                console.log('user is connected to chat');
                 if (my_nps.adapter.rooms[roomNumber]) {
                     socket.join(roomNumber);
                     my_nps.to(roomNumber).emit('userChatStatusClient', {
@@ -49,36 +50,19 @@ module.exports = function(server){
                     });
                 }
             }
-
-
         });
 
 
 
-
-        socket.on('userMessageServer', function(data) {
-            console.log('someone connected to nsp');
-            //console.dir('text', data);
+        //checking message with client
+        socket.on('userMessageServer', function (data) {
             var d = Date.now();
             var roomNumber = data.user._id + data.opponent[0]._id;
             var roomNumber2 = data.opponent[0]._id + data.user._id;
 
-            //console.log('room Number', roomNumber);
-
-            /*
-             cb({
-             idSender: user._id,
-             text    : data.text,
-             username: user.username,
-             date    : new Date(d),
-             img     : user.img
-             });
-             */
-            //console.log(socket.rooms);
-            //console.dir(my_nps.adapter.rooms);
-
+            // changing when room to connecting
             if (my_nps.adapter.rooms[roomNumber]) {
-                socket.join(roomNumber, function() {
+                socket.join(roomNumber, function () {
                     console.log('hi');
                 });
                 my_nps.to(roomNumber).emit('userMessageClient', {
@@ -102,18 +86,30 @@ module.exports = function(server){
         });
     });
 
+    //chat for all users
     io.on('connection', function (socket) {
-        console.info('New client connected (id=' + socket.id + ').');
+
+
+        socket.on('status', function (text) {
+            console.log('status = > ',text.text);
+            socket.broadcast.emit('status', {
+                userId  : text.user._id,
+                username: text.user.username,
+                text    : text.text,
+                img     : text.user.img
+            });
+        });
 
         socket.on('message', function (text, cb) {
-            console.log('text ', text);
 
-            UserDb.findById(text.user, function(err, user) {
+            UserDb.findById(text.user, function (err, user) {
                 var d = Date.now();
-                console.log(user);
+
                 if (err) {
                     throw err
                 }
+
+                //callback for send message youself
                 cb({
                     idSender: user._id,
                     text    : text.text,
@@ -122,21 +118,15 @@ module.exports = function(server){
                     img     : user.img
                 });
 
-                //console.log(formatDate(Date.now()));
+                //send message all users without youself
                 socket.broadcast.emit('message', {
                     idSender: user._id,
                     text    : text.text,
                     username: user.username,
                     date    : new Date(d),
                     img     : user.img
+                });
             });
-            });
-
-
-        });
-
-        socket.on('disconnect', function () {
-            console.info('Client gone (id=' + socket._id + ').');
         });
     });
 };

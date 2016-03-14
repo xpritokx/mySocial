@@ -27,35 +27,38 @@ define([
 
     var CorrespondenceView = Backbone.View.extend({
         el: '#containerHeaderBlock',
-        initialize: function() {
+        initialize: function () {
             var self = this;
 
+            //printing message
             socketCorr.on('userMessageClient', function (data) {
                 console.log('emit message');
                 if (data.text) {
                     self.printMessage(data.username, data.text, data.date, data.img, data.idSender);
                 }
             });
+
+            //printing status of user in room
             socketCorr.on('userChatStatusClient', function (data) {
-                console.log('emit message');
                 if (data) {
-                    console.log('printing status=)');
                     self.printStatus(data.username, data.status);
                 }
             });
+
+            //printing status of user in room
             socketCorr.on('connect', function () {
                 console.log('CHAT connection is setting');
 
                 self.printStatus(self.model.get('user').get('username') ,'connection');
             });
-            /*
+
+            //printing status of user in room
             socketCorr.on('disconnect', function () {
                 console.log('CHAT connection is lost');
 
-                self.printStatus('connection is lost');
+                self.printStatus(self.model.get('user').get('username'), 'connection is lost');
             });
-            */
-            //console.log('sock = ', socketCorr);
+
             this.render();
         },
 
@@ -64,28 +67,27 @@ define([
             'keypress #containerUpload2'       : 'sendMessage'
         },
 
-        printStatus: function(user, text) {
-            console.log('printing messages', user, ', ', text);
+        //function that printing status
+        printStatus: function (user, text) {
             $('#showMessagesUser').prepend('<li>' + user + " is " + text + '</li><hr>')
         },
-        printMessage: function(user, text, date, img, idSender) {
-            console.log('im printing!');
-            console.log('printing messages', user, ', ', text);
-            console.log('id Sender', idSender);
-            $('#showMessagesUser').prepend('<li class = "messChat"><img class="chatImg" src="'+ img +'"><strong>' + user + '</strong><br><div class = "blockForChatText">' + text + '</div><br><h6>' + date + '</h6><hr></li>');
+
+        //function that printing message
+        printMessage: function (user, text, date, img, idSender) {
+            $('#showMessagesUser').prepend('<li class = "messChat"><img class="chatImg" src="'+ img +'"><strong>' + user + '</strong><br><div class = "blockForChatText">' + text + '</div><br><h6>' + new Date(date).adecvatFormat() + '</h6><hr></li>');
         },
+
+        //function that send message in the printing and saving in the db
         sendMessage: function (e) {
             console.log('mess is send!');
             if (((e.target.className !== 'sendInToCorrButton') && (e.keyCode !== 13)) || (!$('#editMessUser').val().trim())) {
                 return
             }
-            console.log('im passed!');
 
             var text = $('#editMessUser').val();
 
             var newUserMesModel =  new UserMessage();
 
-            console.log('text = ', text);
             newUserMesModel.save({
                 sender: {
                     user1: this.model.get('user').get('_id'),
@@ -114,10 +116,11 @@ define([
             $('#editMessUser').val('');
         },
 
+        //function which react on the url action
         userIsNotActive: function () {
             var self = this;
 
-            $(window).bind('hashchange', function() {
+            $(window).bind('hashchange', function () {
                 socketCorr.emit('userChatStatus', {
                     user: self.model.get('user'),
                     opponent: self.model.get('opponent'),
@@ -127,26 +130,23 @@ define([
             });
         },
 
+        //printing user messages from db
         renderUserMessages: function (messages) {
             console.log('response is here!');
             var self = this;
             var messagesColl = messages.toJSON().messages;
 
             messagesColl.forEach(function (mess) {
-                console.log(mess);
                 self.printMessage(mess.user.username, mess.text, mess.date, mess.user.img, mess.user._id);
             })
         },
 
+        //fetching messages from db
         getMessages: function () {
             var userMessagesModelInstance = new UserMessage();
 
             userMessagesModelInstance.on('change', this.renderUserMessages, this);
 
-            //userMessagesModelInstance.set({user1: this.model.get('user').get('_id')});
-            //userMessagesModelInstance.set({user2: this.model.get('opponent')[0].get('_id')});
-            //userMessagesModelInstance.on('reset', this.renderUserMessages, this);
-            //console.log('userMessagesModelInstance', userMessagesModelInstance);
             userMessagesModelInstance.fetch({
                 data: {
                     user1: this.model.get('user').get('_id'),
@@ -173,6 +173,7 @@ define([
                 img: opponentImg
             }));
 
+            //sending status on server
             socketCorr.emit('userChatStatus', {
                 user: this.model.get('user'),
                 opponent: this.model.get('opponent'),
@@ -182,7 +183,6 @@ define([
             this.getMessages();
 
             this.userIsNotActive();
-            //this.printStatus(this.model.get('user').get('username'), ' connected');
         }
     });
 

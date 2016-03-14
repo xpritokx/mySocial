@@ -9,12 +9,8 @@ define([
             this.on('change', function () {
                 console.log(' postModel is been changed ');
             });
-        },
-        defaults: {
-            title: "new Post",
-            content: "empty",
-            image: 'images/question.png'
         }
+
     });
 
     return PostModel

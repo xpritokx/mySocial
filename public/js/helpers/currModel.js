@@ -7,7 +7,7 @@ define([
     _,
     UserPageModel
 ){
-
+    //function for fetching current user model
     function currModel (func) {
         var modelInstance = new UserPageModel({_id: 'id_for_URL/:id'});
 
@@ -16,7 +16,7 @@ define([
         });
 
         modelInstance.fetch({
-            success: function(model){
+            success: function (model) {
                 if (func) {
                     func(model);
                 }
@@ -27,7 +27,7 @@ define([
                 }
             }
         });
-    };
+    }
 
     return currModel
 

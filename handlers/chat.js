@@ -1,66 +1,66 @@
-/**
- * Created by Pritok on 09.03.2016.
- */
 var ChatDb = require('../models/message').Message;
 var mongoose = require('mongoose');
 
 module.exports = function () {
-    this.getMessages = function(req, res, next) {
-        console.log('i get messages!');
 
+    this.getMessages = function (req, res, next) {
+        console.log('i get messages!');
+        //finding all messages for chat
         ChatDb.find({}, function (err, chats) {
             if (err) {
                 return next(err);
             }
 
-            chats.forEach(function (item) {
-                console.log('Received a GET request for _id for /CHAT ' + item.textMessage);
-                console.log('Received a GET request for _id for /CHAT ' + item.sender.senderName);
-                console.log('Received a GET request for _id for /CHAT ' + item.sender.img);
-                console.log('Received a GET request for _id for /CHAT ' + item.date);
-
-
-            });
-
             res.status(200).send(chats);
         });
     };
 
-    this.sendMessage = function(req, res, next) {
-        console.log('i send message!');
+    this.sendMessage = function (req, res, next) {
+        console.log('i sent message!');
         var message = ChatDb(req.body);
 
-        for (var key in req.body) {
-            console.log(key + ": " + req.body[key])
-        }
-
-        message.save(function(err, doc) {
+        message.save(function (err, doc) {
             if (err) {
                 return next(err);
             }
-
-            console.log(doc.sender.senderName + ' is saved');
 
             res.status(200).send(doc);
         });
     };
 
-    this.delMessage = function(req, res, next) {
+    this.delMessage = function (req, res, next) {
+        console.log('i delete message!');
         var id = req.params.id;
 
-        console.log('Receive a DELETE message for _id: ' + id);
+        function delChatMessage() {
+            ChatDb.findByIdAndRemove(id, function (err, delMess) {
+                if (err) {
+                    return next(err);
+                }
 
-        ChatDb.findByIdAndRemove(id, function (err, delMess) {
-            if(err) {
+                res.status(200).send(delMess);
+            });
+        }
+
+        ChatDb.findById(id, function (err, mess) {
+            if (err) {
                 return next(err);
             }
+            console.log(req.session.user.username);
 
-            res.status(200).send(delMess);
+            if (req.session.user.username !== 'admin') {
+                if (req.session.user.userId !== mess.sender.senderId){
+                    res.status(401).send();
+                } else {
+                    delChatMessage();
+                }
+            } else {
+                delChatMessage();
+            }
+
+
         });
-
     };
-
-
 };
 
 

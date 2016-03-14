@@ -12,7 +12,9 @@ router.post('/', handler.addFriends);
 
 router.put('/:id', handler.delFromFriends);
 
+
 //deleting user by id (delFriend)
 router.delete('/:id', handler.delFriend);
+
 
 module.exports = router;

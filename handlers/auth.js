@@ -17,20 +17,15 @@ module.exports = function () {
     };
 
     this.enterInToSite = function (req, res, next) {
-        var val = {};
         var username = req.body.username;
         var password = req.body.password;
-        console.log('Receive a POST request for UserLog!');
+
+        console.log('Receive a POST request for User Log In !');
 
         if (req.body.coords) {
             UserDb.update({username: username}, {coords: req.body.coords}, function(){
-                console.log('coords updated!');
+                console.log('coords updated for'+ username + '!');
             });
-        }
-
-        for (var key in req.body) {
-            console.log(key + ": " + req.body[key]);
-            val[key] = req.body[key];
         }
 
         //finding one user which match our password and username in db, and output data to client
@@ -40,25 +35,31 @@ module.exports = function () {
             }
 
             if ((user) && (user.get('applied'))) {
+                console.log('User' + user.username + 'is found');
 
                 if (user.checkPassword(password)) {
-                    console.log("User is found");
+                    console.log('password for ' + user.username + ' is true!');
+                    //creating session with user identificator and user coords
                     req.session.user = {
                         userId: user._id,
+                        username: user.username,
                         coords: req.body.coords
                     };
 
                     delete user.hashedPassword;
 
-                    user.set({dist: geoLock(req.session.user.coords.latitude, user.coords.latitude, req.session.user.coords.longitude, user.coords.longitude)});
+                    //setting base coords for user
+                    user.set({
+                        dist: geoLock(req.session.user.coords.latitude, user.coords.latitude, req.session.user.coords.longitude, user.coords.longitude)
+                    });
 
                     res.status(200).send(user);
                 } else {
-                    console.log('password is not true!');
+                    console.log('password for ' + user.username + ' is not true!');
                     res.status(200).send();
                 }
             } else {
-                console.log('User is not found!');
+                console.log('User ' + username + ' is not found!');
                 res.status(200).send();
             }
         });

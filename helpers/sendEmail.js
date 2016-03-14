@@ -3,6 +3,7 @@ var smtpTransport = require('nodemailer-smtp-transport');
 
 // function which send message to email
 module.exports = function sendEmail(to, title, text) {
+
     //description authorization in to email client
     var transport = nodemailer.createTransport(
         smtpTransport({
@@ -13,6 +14,7 @@ module.exports = function sendEmail(to, title, text) {
             }
         })
     );
+
     //params which routing when and what sending
     var params = {
         from: 'xpritokx@gmail.com',

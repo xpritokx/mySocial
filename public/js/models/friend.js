@@ -7,7 +7,7 @@ define([
     var FriendModel = Backbone.Model.extend({
         initialize : function () {
             this.on('change', function () {
-                console.log(' modelFriend is been changed ');
+                console.log(' modelFriend has been changed ');
             });
         },
         urlRoot: "/friends"

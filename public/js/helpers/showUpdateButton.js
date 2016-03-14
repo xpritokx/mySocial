@@ -3,7 +3,7 @@ define([
 ], function (
     currModel
 ){
-
+    //showing and hiding buttons
     function showUpdateButton() {
         currModel(function (currentUserModel) {
             if(currentUserModel.get('username') !== 'admin') {

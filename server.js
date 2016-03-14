@@ -1,6 +1,3 @@
-/**
- * Created by Pritok on 16.02.2016.
- */
 var express = require('express');
 var path = require('path');
 var bodyParser = require('body-parser');
@@ -36,10 +33,12 @@ DB_HOST = process.env.DB_HOST;
 DB_NAME = process.env.DB_NAME;
 DB_PORT = parseInt(process.env.DB_PORT, 10);
 
+console.log(process.env.DB_USER, process.env.DB_PASSWORD);
+
 connectionOptions = {
     server: {poolSize: 5},
-    //user: process.env.DB_USER,
-    //pass: process.env.DB_NAME,
+    user: process.env.DB_USER,
+    pass: process.env.DB_PASSWORD,
     w: 1,
     j: true
 };
@@ -63,6 +62,7 @@ function onConnection() {
 
     //auth stack middleware
     var authStackMiddleware = require('./helpers/auth');
+    var superadminStackMiddleware = require('./helpers/superadmin');
 
     port = parseInt(port, 10);
 
@@ -118,6 +118,7 @@ function onConnection() {
 
     app.use('/userLog', authRouter);
     app.use('/sendRestore', restoreRouter);
+    //app.use('/', superadminStackMiddleware, deletingRouter);
     app.use('/', authStackMiddleware,indexRouter);
 
 

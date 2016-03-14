@@ -6,6 +6,7 @@ define([
 ], function (
     Backbone
 ) {
+    //model exchange data for correspondence
     var MessageForUserModel = Backbone.Model.extend({
         urlRoot: function(){
             return '/correspondence'
