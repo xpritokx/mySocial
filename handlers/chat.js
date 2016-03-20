@@ -5,6 +5,7 @@ module.exports = function () {
 
     this.getMessages = function (req, res, next) {
         console.log('i get messages!');
+
         //finding all messages for chat
         ChatDb.find({}, function (err, chats) {
             if (err) {
@@ -16,8 +17,8 @@ module.exports = function () {
     };
 
     this.sendMessage = function (req, res, next) {
-        console.log('i sent message!');
         var message = ChatDb(req.body);
+        console.log('i sent message!');
 
         message.save(function (err, doc) {
             if (err) {
@@ -29,9 +30,10 @@ module.exports = function () {
     };
 
     this.delMessage = function (req, res, next) {
-        console.log('i delete message!');
+        console.log('i deleting message!');
         var id = req.params.id;
 
+        //function for deleting message of chat
         function delChatMessage() {
             ChatDb.findByIdAndRemove(id, function (err, delMess) {
                 if (err) {
@@ -46,9 +48,12 @@ module.exports = function () {
             if (err) {
                 return next(err);
             }
-            console.log(req.session.user.username);
+            console.log('user is admin ', req.session.user.admin);
 
-            if (req.session.user.username !== 'admin') {
+            //if deleting admin that he getting access
+            if (!req.session.user.admin) {
+
+                //user can deleting messages which he self creating
                 if (req.session.user.userId !== mess.sender.senderId){
                     res.status(401).send();
                 } else {

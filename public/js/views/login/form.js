@@ -4,6 +4,8 @@ define([
     'models/login',
     'app',
 
+    'helpers/sockets',
+
     'text!templates/loginPage.html'
 ], function (
     Backbone,
@@ -11,20 +13,21 @@ define([
     UserLogModel,
     app,
 
+    sockets,
+
     temp
 ) {
     var LoginPageView;
 
     LoginPageView = Backbone.View.extend({
         model: UserLogModel,
-
         el: '#login-block',
-
         template: _.template(temp),
 
         initialize: function () {
             this.render();
         },
+
         events: {
             'click #signInButton': 'sendFormLog'
         },
@@ -35,6 +38,7 @@ define([
             var $usInput = $('#editUsernameLog').val();
             var $passInput = $('#editPasswordLog').val();
 
+            //get coords -> latitude and longitude
             navigator.geolocation.getCurrentPosition(success, error);
 
             function success(p) {
@@ -46,6 +50,10 @@ define([
             }
 
             function login(lat, long) {
+                var $editUsernameLog = $('#editUsernameLog');
+                var $editPasswordLog = $('#editPasswordLog');
+                var $errorLabLog = $('#errorLabLog');
+
                 if ($passInput.length > 6) {
                     user.save({
                         'username': $usInput,
@@ -57,18 +65,20 @@ define([
                     }, {
                         success: function (model) {
                             console.log('Successfully Save Data!))) with id ' + model.toJSON()._id);
-                            console.log("username this user is " + model.toJSON().username);
+                            console.log('username this user is ' + model.toJSON().username);
+                            sockets();
                             GLOBAL.router.navigate('/connected_user/' + model.toJSON()._id, {trigger: true});
                         },
                         error: function () {
-                            console.log("Failed Save LOGIN data((((")
+                            console.log('Failed Save LOGIN data((((')
                         }
                     });
                 } else {
-                    $('#errorLabLog').html("password must be more at 6 symbols!");
+                    $errorLabLog.html('password must be more at 6 symbols!');
                 }
-                $('#editUsernameLog').val('');
-                $('#editPasswordLog').val('');
+
+                $editUsernameLog.val('');
+                $editPasswordLog.val('');
             }
         },
 

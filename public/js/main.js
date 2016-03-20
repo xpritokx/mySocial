@@ -1,6 +1,3 @@
-/**
- * Created by Pritok on 05.03.2016.
- */
 require.config({
     paths: {
         jQuery: 'libs/jquery/dist/jquery',

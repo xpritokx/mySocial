@@ -5,7 +5,7 @@ define([
     Backbone,
     MessageModel
 ) {
-    //collection for output messages of chat
+    //collection for storage models Messages of chat
     var MessagesColl = Backbone.Collection.extend({
         model: MessageModel,
         url: '/chat'

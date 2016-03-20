@@ -7,13 +7,31 @@ var multiparty = require('multiparty');
 
 module.exports = function () {
     this.getAllPosts = function (req, res, next) {
+        var newPostColl = [];
+        var masFriends = [];
 
         PostDb.find({}, function (err, posts) {
             if (err) {
                 return next(err);
             }
 
-            res.status(200).send(posts);
+            UserDb.findById(req.session.user.userId, function (err, user) {
+                if (err) {
+                    return next(err);
+                }
+                var i;
+
+                masFriends = user.friends;
+                console.log('userFriends ', masFriends);
+
+                for (i = 0; i < posts.length; i++) {
+                    if ((masFriends.indexOf(posts[i].createrId) >= 0) || (posts[i].createrId === req.session.user.userId)) {
+                        newPostColl.push(posts[i]);
+                    }
+                }
+
+                res.status(200).send(newPostColl);
+            });
         });
     };
 
@@ -75,6 +93,7 @@ module.exports = function () {
     this.deletePost = function (req, res, next) {
         var id = req.params.id;
 
+        //function which find post by id and delete
         function delPost() {
             PostDb.findByIdAndRemove(id, function (err, post) {
                 if (err) {
@@ -90,8 +109,9 @@ module.exports = function () {
                 return next(err);
             }
 
-            //post deleting has order only owner
-            if (req.session.user.username !== 'admin') {
+            //post deleting has order only owner or admin
+            if (!req.session.user.admin) {
+
                 if (req.session.user.userId !== post.createrId){
                     console.log('im not!');
                     res.status(401).send();
@@ -101,8 +121,6 @@ module.exports = function () {
             } else {
                 delPost();
             }
-
-
         });
     };
 

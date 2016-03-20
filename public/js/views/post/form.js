@@ -12,15 +12,24 @@ define([
 ){
     var PostsView = Backbone.View.extend({
         el: '#posts-list',
-        initialize: function() {
-            //this.collection.on('reset', this.render, this);
 
-            this.collection.fetch();
-            this.render();
+        initialize: function() {
+            this.collection.once('reset', this.render, this);
+
+            this.getDataToCollection();
+
         },
+
+        //fetching model without render
+        getDataToCollection: function () {
+            this.collection.fetch({reset: true});
+        },
+
         render: function() {
             this.collection.each(function(myModel) {
-                var postView = new NewPostView({model:myModel});
+                var postView;
+
+                postView = new NewPostView({model:myModel});
                 this.$el.append(postView.render().el);
             }, this);
         }

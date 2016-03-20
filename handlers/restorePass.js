@@ -19,7 +19,7 @@ module.exports = function() {
         var sessionToken = req.session.restore.token;
         var sessionUserId = req.session.restore.userId;
 
-        //compare current token with email token
+        //compare request token with email token
         if (req.params.token === sessionToken) {
             UserDb.findById(sessionUserId, function(err, user){
                 if (err) {
@@ -44,8 +44,9 @@ module.exports = function() {
         var emailToken = req.params.token;
         var sessionToken = req.session.restore.token;
 
+        //if token from email not equal token from session that access is not
         if (emailToken === sessionToken) {
-            res.redirect('/#restorePass/' + emailToken)
+            res.redirect('/#restorePass/' + sessionToken)
         } else {
             res.redirect('/#main')
         }
@@ -69,12 +70,14 @@ module.exports = function() {
                     //generating token
                     token = crypto.createHash('sha1').digest('hex');
 
+                    //creating session which checking restore password
                     req.session.restore = {
                         userId: user._id,
                         token: token
                     };
 
-                    sendEmail(fields.email[0], user.get('username') + ' you password is here!', 'Hello ' + user.get('username') + ' your password from Public House is ' + DB_HOST + ':' + PORT + '/sendRestore/' + token);
+                    //sending message on email for restore password
+                    sendEmail(fields.email[0], user.get('username') + ' you password is here!', 'Hello ' + user.get('username') + ' your password from Public House is http://' + DB_HOST + ':' + PORT + '/sendRestore/' + token);
 
                     res.redirect('/#main');
                 }

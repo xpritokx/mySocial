@@ -3,26 +3,24 @@ define([
     'Underscore',
     'jQuery',
 
-    'helpers/hideFriends',
     'helpers/showUpdateButton',
 
-    'views/user/list'
+    'views/invite/list'
 ], function (
     Backbone,
     _,
     $,
 
-    hideFriends,
     showUpdateButton,
 
-    NewUserPageView
+    NewInviteView
 ){
-    var UserPagesView = Backbone.View.extend({
+    var InvitePagesView = Backbone.View.extend({
         el: $('#containerHeaderBlock'),
 
         initialize: function() {
-            //this.render();
-            this.collection.once('reset', this.render, this);
+            console.log('i am initializing invites');
+            this.collection.on('reset', this.render, this);
             this.getDataToCollection();
         },
 
@@ -42,23 +40,19 @@ define([
         },
 
         render: function() {
-            //this.collection.off('reset');
+            console.log('im rendering invites!!');
+            console.log(this.collection);
+
+            this.collection.off('reset');
+
             this.collection.each(function (myModel) {
-                var userViewInstance = new NewUserPageView({model: myModel});
+                var userViewInstance = new NewInviteView({model: myModel});
                 this.$el.append(userViewInstance.render().el);
             }, this);
-
-            if (this.model) {
-                console.log('TM!' ,this.model);
-                hideFriends(this.model);
-            }
-
-            showUpdateButton();
 
             return this
         }
     });
 
-    return UserPagesView
+    return InvitePagesView
 });
-

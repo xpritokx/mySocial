@@ -11,7 +11,6 @@ define([
 ) {
     var RegisterPageView = Backbone.View.extend({
         el: '#global',
-
         template: _.template(temp),
 
         initialize: function(){
@@ -23,9 +22,10 @@ define([
         },
 
         sendFormReg: function() {
-            console.log("-=- REGISTRATION -=-");
-            var user = new UserPageModel();
+            console.log('-=- REGISTRATION -=-');
 
+            var self = this;
+            var user = new UserPageModel();
             var $editUsernameReg = $('#editUsernameReg');
             var $editPasswordReg = $('#editPasswordReg');
             var $editConfirmPasswordReg = $('#editConfirmPasswordReg');
@@ -42,17 +42,31 @@ define([
                     'address' : $editAddressReg.val()
                 }, {
                     success: function(response) {
+                        console.log('Successfully REGISTER User!!!))) with id ' + response.toJSON()._id);
+                        alert($editUsernameReg.val() + '! We sent you message about verification on email ' + $editEmailReg.val() + " !");
+                        self.clearInputs();
                         GLOBAL.router.navigate('#main', {trigger: true});
-                        console.log("Successfully REGISTER User!!!))) with id " + response.toJSON()._id);
                     },
                     error: function () {
-                        console.log("Failed Save REGISTER data((((")
+                        self.clearInputs();
+                        console.log('Failed Save REGISTER data((((')
                     }
                 });
             } else {
-                console.log(" REGISTRATION passwords is not comfirm!");
-                $('#errorLab').html("password must be confirm and more at 6 symbols!");
+                console.log('REGISTRATION passwords is not confirm!');
+                $('#errorLab').html('password must be confirm and more at 6 symbols!');
             }
+
+        },
+
+        clearInputs: function () {
+            var $editUsernameReg = $('#editUsernameReg');
+            var $editPasswordReg = $('#editPasswordReg');
+            var $editConfirmPasswordReg = $('#editConfirmPasswordReg');
+            var $editEmailReg = $('#editEmailReg');
+            var $editBirthdayReg = $('#editBirthdayReg');
+            var $editAddressReg = $('#editAddressReg');
+
             //clear inputs
             $editUsernameReg.val('');
             $editPasswordReg.val('');
@@ -64,7 +78,18 @@ define([
 
         render: function () {
             var $registerBlock = $('#register-block');
+            var $editAddressReg;
+
             $registerBlock.hide().append(this.template()).slideDown('slow');
+
+
+            $editAddressReg = $('#editAddressReg');
+
+            if (this.model) {
+                $editAddressReg.val(this.model);
+            }
+
+            return this
         }
     });
 

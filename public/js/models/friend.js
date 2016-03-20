@@ -10,7 +10,8 @@ define([
                 console.log(' modelFriend has been changed ');
             });
         },
-        urlRoot: "/friends"
+
+        urlRoot: '/friends'
     });
 
     return FriendModel

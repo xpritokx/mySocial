@@ -3,7 +3,7 @@ define([
 ], function (
     Backbone
 ) {
-    //create new post
+    //model for storage data one post
     var PostModel = Backbone.Model.extend({
         initialize : function () {
             this.on('change', function () {

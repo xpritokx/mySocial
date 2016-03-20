@@ -3,35 +3,10 @@ define([
     'Underscore',
     'jQuery',
 
-    'models/changeState',
-
-    'views/user/form',
-    'views/user/list',
-    'collections/user',
-
-    'views/post/form',
-    'views/post/list',
-    'collections/post',
-
-    'views/register/form',
-    'views/login/form',
-    'views/restore/form',
     'views/chat/chat',
     'views/correspondence/correspondence',
 
-    'collections/friend',
-
-    'helpers/currModel',
-    'helpers/hideFriends',
-    'helpers/showUpdateButton',
-
-    'text!templates/welcomePage.html',
-    'text!templates/restorePasswordPage1.html',
-    'text!templates/userListBlock.html',
-    'text!templates/postBlockPage.html',
-    'text!templates/chatPage.html',
-    'text!templates/uploadFilePage.html',
-    'text!templates/sendInvitePage1.html',
+    'helpers/sockets',
 
     'router'
 ], function (
@@ -39,48 +14,15 @@ define([
     _,
     $,
 
-    ChangeStateModel,
-
-    UserPagesView,
-    NewUserPageView,
-    UserPagesCollection,
-
-    PostsView,
-    NewPostView,
-    PostsCollection,
-
-    RegisterPageView,
-    LoginPageView,
-    RestorePageView,
     ChatView,
     CorrespondenceView,
-
-    FriendsPagesCollection,
-
-    currModel,
-    hideFriends,
-    showUpdateButton,
-
-    welcomeTemp,
-    restoreTemp,
-    userListBlockTemp,
-    postBlockPageTemp,
-    chatTemp,
-    uploadFilePageTemp,
-    sendInvitePageTemp,
+    sockets,
 
     Router
 ) {
-    var userViewInstance;
-    var postsViewInstance;
-    var friendsViewInstance;
-    var chatViewInstance;
-    var correspondenceViewInstance;
 
-    var userColInstance;
-    var postColInstance;
-    var friendsColInstance;
-    var chatColInstance;
+    var correspondenceViewInstance;
+    var chatViewInstance;
 
     Date.prototype.getMonthName = function() {
         var month = ['Jan','Feb','Mar','Apr','May','Jun',
@@ -100,48 +42,16 @@ define([
         var minutes = this.getMinutes();
         var seconds = this.getSeconds();
 
-        return monthMas[month] + "-" + day + "-" + year + " " + hours + ":" + minutes + ":" + seconds;
+        return monthMas[month] + '-' + day + '-' + year + ' ' + hours + ':' + minutes + ':' + seconds;
     };
 
     GLOBAL = {};
 
-    function init () {
-        GLOBAL.postColInstance = new PostsCollection();
+    GLOBAL.socketCorr = io('/my_namespace');
+    GLOBAL.socketCorrLocal = io('/my_local_chat');
 
-        GLOBAL.userColInstance = new UserPagesCollection();
-
-        GLOBAL.friendsColInstance = new FriendsPagesCollection();
-
-
-        GLOBAL.initUsers();
-        GLOBAL.initFriends();
-        GLOBAL.initPosts();
-
-    }
-
-    GLOBAL.getUserInstance = function () {
-        return userViewInstance
-    };
-
-    GLOBAL.getFriendsInstance = function () {
-        return friendsViewInstance
-    };
-
-    GLOBAL.getPostsInstance = function () {
-        return postsViewInstance
-    };
-
-    GLOBAL.initUsers = function () {
-        return userViewInstance = new UserPagesView({collection: GLOBAL.userColInstance});
-    };
-
-    GLOBAL.initPosts = function () {
-        return postsViewInstance = new PostsView({collection: GLOBAL.postColInstance});
-    };
-
-    GLOBAL.initFriends = function () {
-        return friendsViewInstance = new UserPagesView({collection: GLOBAL.friendsColInstance});
-    };
+    GLOBAL.counterMessages = {};
+    GLOBAL.listInvites = [];
 
     GLOBAL.initChat = function (currentUserModel) {
         if (!chatViewInstance) {
@@ -153,21 +63,22 @@ define([
     };
 
     GLOBAL.initCorrespondence = function (model) {
+
         if (!correspondenceViewInstance) {
             correspondenceViewInstance = new CorrespondenceView({model: model});
         } else {
             correspondenceViewInstance.model = model;
-            correspondenceViewInstance.render();
+            correspondenceViewInstance.initialize();
         }
     };
 
-    Backbone.Model.prototype.idAttribute = "_id";
+    Backbone.Model.prototype.idAttribute = '_id';
 
-
+    sockets();
 
     GLOBAL.router = new Router();
 
     return {
-        init: init
+        init: function () {return 0}
     }
 });

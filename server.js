@@ -60,11 +60,10 @@ function onConnection() {
     //port = 8088
     var port = process.env.PORT;
 
+    var server;
+
     //auth stack middleware
     var authStackMiddleware = require('./helpers/auth');
-    var superadminStackMiddleware = require('./helpers/superadmin');
-
-    port = parseInt(port, 10);
 
     //declaration routers
     var chatRouter = require('./routes/chat');
@@ -72,13 +71,15 @@ function onConnection() {
     var userRouter = require('./routes/users');
     var postRouter = require('./routes/posts');
     var indexRouter = require('./routes/index');
+    var inviteRouter = require('./routes/invite');
     var friendRouter = require('./routes/friends');
     var restoreRouter = require('./routes/restore');
     var registerRouter = require('./routes/register');
     var correspondenceRouter = require('./routes/correspondence');
 
+    port = parseInt(port, 10);
 
-    console.log("database in connection");
+    console.log('database in connection');
 
     //require db schemas user/post
     require('./models/index');
@@ -96,11 +97,11 @@ function onConnection() {
     //httpOnly => security against XSS attack!
     // maxAge => cookie deleting how closing brauser
     app.use(sessions({
-        "secret": "Transcarpathian",
-        "cookie": {
-            "path": "/",
-            "httpOnly": true,
-            "maxAge": null
+        'secret': 'Transcarpathian',
+        'cookie': {
+            'path': '/',
+            'httpOnly': true,
+            'maxAge': null
         },
         store: new MongoStore({
             mongooseConnection: db
@@ -114,15 +115,12 @@ function onConnection() {
     app.use('/posts', authStackMiddleware, postRouter);
     app.use('/friends', authStackMiddleware, friendRouter);
     app.use('/chat', authStackMiddleware, chatRouter);
-    app.use('/correspondence',  correspondenceRouter);
+    app.use('/inviteToFriends', authStackMiddleware, inviteRouter);
+    app.use('/correspondence', authStackMiddleware, correspondenceRouter);
 
     app.use('/userLog', authRouter);
     app.use('/sendRestore', restoreRouter);
-    //app.use('/', superadminStackMiddleware, deletingRouter);
     app.use('/', authStackMiddleware,indexRouter);
-
-
-
 
     app.use(function (err, req, res, next) {
         var status = err.status || 500;
@@ -136,9 +134,8 @@ function onConnection() {
         }
     });
 
-
     //running server
-    var server = http.createServer(app).listen(port, function () {
+    server = http.createServer(app).listen(port, function () {
         console.log('server is listing post ', port);
     });
 

@@ -5,18 +5,29 @@ var geoLock = require('../helpers/findLocation');
 
 module.exports = function () {
     this.getOneUser = function (req, res, next) {
-        var id = req.session.user.userId;
+        var id = req.params.id;
+
+        //console.log('im get model');
+
+        if (id === 'id_for_URL/:id') {
+            id = req.session.user.userId;
+        }
 
         UserDb.findById(id, {hashedPassword: 0}, function (err, user) {
             if (err) {
                 return next(err);
             }
 
-            //computing distance for one user
-            user.set({dist: geoLock(req.session.user.coords.latitude, user.coords.latitude, req.session.user.coords.longitude, user.coords.longitude)});
+            if (user) {
+                //computing distance for one user
+                user.set({dist: geoLock(req.session.user.coords.latitude, user.coords.latitude, req.session.user.coords.longitude, user.coords.longitude)});
 
+                //console.log(user);
+                res.status(200).send(user);
 
-            res.status(200).send(user);
+            } else {
+                res.status(200).send();
+            }
         });
     };
 
@@ -66,16 +77,20 @@ module.exports = function () {
 
         UserDb.findById(id, function (err, user) {
 
-            if (req.session.user.username !== 'admin') {
+            //admin can delete each user
+            if (!req.session.user.admin) {
 
-               if (user._id === req.session.user.userId) {
+                console.log('usId = >', user._id, "reqSessionId = >", req.session.user.userId);
+                //if user delete self that destroying session
+               if (user._id == req.session.user.userId) {
 
                    UserDb.findByIdAndRemove(id, function (err, user) {
                        if (err) {
                            return next(err);
                        }
-
+                       console.log('user ', user._id, 'is deleted...')
                        req.session.destroy();
+
                        res.redirect('/#main');
                    });
                } else {
@@ -88,6 +103,7 @@ module.exports = function () {
                     }
 
                     delete user.hashedPassword;
+
                     res.status(200).send(user);
                 });
             }

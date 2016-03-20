@@ -5,7 +5,7 @@ define([
     Backbone,
     MessageForUserModel
 ) {
-    //collection for output models of user correspondence
+    //collection for storage models of user correspondence
     var MessagesForUserColl = Backbone.Collection.extend({
         model: MessageForUserModel,
         url: '/correspondence'

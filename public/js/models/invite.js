@@ -4,14 +4,11 @@ define([
     Backbone
 ) {
     //model for storage data of change state verification User after link in the email (True/False)
-    var ChangeStateModel = Backbone.Model.extend({
+    var InviteToFriendsModel = Backbone.Model.extend({
         urlRoot: function() {
-            return '/changeState'
+            return '/inviteToFriends'
         }
     });
 
-    return ChangeStateModel
+    return InviteToFriendsModel
 });
-
-
-

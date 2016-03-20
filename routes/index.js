@@ -4,6 +4,11 @@ var Handler = require('../handlers/index');
 
 var handler = new Handler();
 
+router.get('/countMess/:id', handler.getCountMessages);
+
+//updating count messages for send to cliend
+router.put('/countMess/:id', handler.updateCountMessages);
+
 //sending email in to description email (sendEmail)
 router.post('/sendEmail',handler.sendEmail);
 

@@ -8,19 +8,18 @@ define([
     temp
 ) {
     var RestorePageView = Backbone.View.extend({
-        //model: ChangeStateModel({_id: this.token}),
-
         el: '#login-block',
-
         template: _.template(temp),
 
-        initialize: function(){
+        initialize: function (){
             this.render();
         },
+
         events: {
             'click #rest': 'sendResPass'
         },
 
+        //checking passwords and send passwords to server for change
         sendResPass: function() {
             this.model.urlRoot = function () {
                 return '/sendRestore/change/'
@@ -35,15 +34,17 @@ define([
                 this.model.save({
                     pass: $pass1
                 },{
-                    success: function() {
+                    success: function () {
                         console.log('password is change!');
                     }
                 });
             }
         },
 
-        render: function() {
+        render: function () {
             this.$el.append(this.template());
+
+            return this
         }
     });
 

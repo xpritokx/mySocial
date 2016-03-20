@@ -2,11 +2,13 @@ var CorrDb = require('../models/userMessage').userMessage;
 var mongoose = require('mongoose');
 
 module.exports = function () {
+
     this.saveCorrespondence = function (req, res, next) {
-        console.log('correspondence is saving!');
         var reqUser1 = req.body.sender.user1;
         var reqUser2 = req.body.sender.user2;
         var currMessage = req.body.textMessage;
+
+        //console.log('correspondence is saving!', currMessage);
 
         //finding one correspondence two users
         CorrDb.findOne({user1: reqUser1, user2: reqUser2}, function (err, mess) {
@@ -21,23 +23,28 @@ module.exports = function () {
 
                 //updating current messages correspondence
                 CorrDb.update({user1: mess.user1, user2: mess.user2}, {messages: mess.messages}, function () {
-                    res.status(200).send();
+                    res.status(200).send({text: currMessage});
                 });
             } else {
+
                 //if correspondence such users not found that we find other tho users
                 CorrDb.findOne({user1: reqUser2, user2: reqUser1}, function (err, mess) {
                     if (err) {
                         next(err);
                     }
 
+                    var message;
+
+                    //if correspondence such users not found that we create new correspondence two users in db
                     if (mess) {
                         mess.messages.push(currMessage);
                         CorrDb.update({user1: mess.user1, user2: mess.user2}, {messages: mess.messages}, function () {
-                            res.status(200).send();
+                            res.status(200).send({text: currMessage});
                         });
                     } else {
-                        //if correspondence such users not found that we create new correspondence two users in db
-                        var message = CorrDb({
+
+                        //creating new correspondence of two users
+                        message = CorrDb({
                             user1: reqUser1,
                             user2: reqUser2,
                             messages: [currMessage]
@@ -70,6 +77,7 @@ module.exports = function () {
             if (user) {
                 res.send({messages: user.messages});
             } else {
+
                 //if correspondence such users not found that we find other tho users
                 CorrDb.findOne({
                     user1: user2,
@@ -82,6 +90,8 @@ module.exports = function () {
                     if (user) {
                         res.status(200).send({messages: user.messages})
                     } else {
+
+                        //if not users that not correspondence
                         res.status(200).send({messages: []})
                     }
                 });

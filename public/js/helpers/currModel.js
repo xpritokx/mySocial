@@ -1,7 +1,7 @@
 define([
     'Backbone',
     'Underscore',
-    'models/user',
+    'models/user'
 ], function (
     Backbone,
     _,
@@ -17,6 +17,8 @@ define([
 
         modelInstance.fetch({
             success: function (model) {
+
+                //function which running after fetching current model
                 if (func) {
                     func(model);
                 }

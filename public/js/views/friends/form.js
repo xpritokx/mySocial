@@ -3,21 +3,19 @@ define([
     'Underscore',
     'jQuery',
 
-    'helpers/hideFriends',
     'helpers/showUpdateButton',
 
-    'views/user/list'
+    'views/friends/list'
 ], function (
     Backbone,
     _,
     $,
 
-    hideFriends,
     showUpdateButton,
 
-    NewUserPageView
+    NewFriendPageView
 ){
-    var UserPagesView = Backbone.View.extend({
+    var FriendsPagesView = Backbone.View.extend({
         el: $('#containerHeaderBlock'),
 
         initialize: function() {
@@ -42,23 +40,29 @@ define([
         },
 
         render: function() {
+            var $butKick;
+            var $butWrite;
+            var $butMini;
+
             //this.collection.off('reset');
             this.collection.each(function (myModel) {
-                var userViewInstance = new NewUserPageView({model: myModel});
-                this.$el.append(userViewInstance.render().el);
+                var friendViewInstance = new NewFriendPageView({model: myModel});
+                this.$el.append(friendViewInstance.render().el);
+
             }, this);
 
-            if (this.model) {
-                console.log('TM!' ,this.model);
-                hideFriends(this.model);
-            }
+            $butKick = $('.butKick');
+            $butWrite = $('.butWrite');
+            $butMini = $('.butMini');
 
-            showUpdateButton();
+            $butMini.hide();
+            $butKick.show();
+            $butWrite.show();
 
             return this
         }
     });
 
-    return UserPagesView
+    return FriendsPagesView
 });
 

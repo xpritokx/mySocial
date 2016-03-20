@@ -11,6 +11,7 @@ var PORT = process.env.PORT;
 module.exports = function () {
     this.saveUser = function (req, res, next) {
         var user = new UserDb(req.body);
+
         console.log('Receive a POST request for registration');
 
         user.save (function (err, doc) {
@@ -19,8 +20,9 @@ module.exports = function () {
             }
             var to = user.get('email');
             var title = 'Verification Public House';
-            var text = 'click to link for verification =) "'+ DB_HOST +':'+ PORT +'/userLog/' + user.get('_id') + '"';
+            var text = 'click to link for verification =) http://' + DB_HOST + ":" + PORT + '/userLog/' + user.get('_id');
 
+            //sending message on email for verification user
             sendEmail(to ,title, text);
 
             delete doc.hashedPassword;

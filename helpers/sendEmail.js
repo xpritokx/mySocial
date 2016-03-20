@@ -25,7 +25,7 @@ module.exports = function sendEmail(to, title, text) {
     //function which sending message whith our param in to email
     transport.sendMail(params, function (err, res) {
         if (err) {
-            console.error("mail err = ", err);
+            console.error('mail err = ', err);
         }
     });
 

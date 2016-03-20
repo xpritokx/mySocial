@@ -7,7 +7,7 @@
 <div>
     <img src=<%= createrInfo.createrImg %> style="max-width: 40px; max-height: 40px; display: inline-block">
     <h5 style="display: inline-block"><%= createrInfo.createrUsername %></h5>
-    <h5><%= created %></h5>
+    <h5><%= new Date(created).adecvatFormat() %></h5>
     <div class="deletePostButtonForm">
         delete
     </div>

@@ -5,13 +5,13 @@ define([
 
     'models/changeState',
 
-    //'views/user/form',
+    'views/user/form',
     'views/user/list',
-    //'collections/user',
+    'collections/user',
 
-    //'views/post/form',
+    'views/post/form',
     'views/post/list',
-    //'collections/post',
+    'collections/post',
 
     'views/register/form',
     'views/login/form',
@@ -19,11 +19,16 @@ define([
     'views/chat/chat',
     'views/correspondence/correspondence',
 
-    //'collections/friend',
+    'views/friends/form',
+    'collections/friend',
+
+    'views/invite/form',
+    'collections/invites',
 
     'helpers/currModel',
     'helpers/hideFriends',
     'helpers/showUpdateButton',
+    'helpers/counterMessages',
 
     'text!templates/welcomePage.html',
     'text!templates/restorePasswordPage1.html',
@@ -31,7 +36,11 @@ define([
     'text!templates/postBlockPage.html',
     'text!templates/chatPage.html',
     'text!templates/uploadFilePage.html',
-    'text!templates/sendInvitePage1.html'
+    'text!templates/sendInvitePage1.html',
+    'text!templates/menu.html',
+    'text!templates/buttonFind.html',
+    'text!templates/inviteToFriends.html',
+    'text!templates/friendPage.html'
 ], function (
     Backbone,
     _,
@@ -39,13 +48,13 @@ define([
 
     ChangeStateModel,
 
-    //UserPagesView,
+    UserPagesView,
     NewUserPageView,
-    //UserPagesCollection,
+    UserPagesCollection,
 
-    //PostsView,
+    PostsView,
     NewPostView,
-    //PostsCollection,
+    PostsCollection,
 
     RegisterPageView,
     LoginPageView,
@@ -53,11 +62,16 @@ define([
     ChatView,
     CorrespondenceView,
 
-    //FriendsPagesCollection,
+    FriendsPageView,
+    FriendsPagesCollection,
+
+    InvitesView,
+    InvitesToFriendsColl,
 
     currModel,
     hideFriends,
     showUpdateButton,
+    counterMessages,
 
     welcomeTemp,
     restoreTemp,
@@ -65,7 +79,11 @@ define([
     postBlockPageTemp,
     chatTemp,
     uploadFilePageTemp,
-    sendInvitePageTemp
+    sendInvitePageTemp,
+    menuPageTemp,
+    findButtonTemp,
+    inviteToFriendsTemp,
+    friendPageTemp
 ) {
     //cashing jQuery
 
@@ -80,22 +98,23 @@ define([
     var $loginBlock = $('#login-block');
     var $findLock = $('#findLock');
     var $containerHeaderBlock = $('#containerHeaderBlock');
-    var $butDel = $('.butDel');
-    var $butKick = $('.butKick');
-    var $butWrite = $('.butWrite');
-    var $butAdd = $('.butAdd');
+    var $menuBlock = $('#menuHeader');
+
 
     Router = Backbone.Router.extend({
         routes: {
             ''                  : 'main',
             'main'              : 'main',
             'logOut'            : 'main',
-            'showUsers'         : 'showUsers',
+            'showAll'           : 'showUsers',
+            'showFind'          : 'showFind',
             'showFriends'       : 'showFriends',
             'showPosts'         : 'showPosts',
             'sendEmail'         : 'sendEmail',
+            'register/:email'   : 'register',
             'register'          : 'register',
             'login'             : 'login',
+            'invitesToFriends'  : 'inviteToFriends',
             'connected_user/:id': 'connUser',
             'changeLogo'        : 'changeLogo',
             'restorePage'       : 'restore',
@@ -109,7 +128,7 @@ define([
                 if (!currentUserModel) {
                     console.log('We come to WELCOME PAGE now');
 
-                    $postList.html('');
+                    $menuBlock.html('');
                     $containerHeader.hide();
 
                     $welcomeBlock.html('').css({opacity: 0}).animate(
@@ -119,17 +138,42 @@ define([
 
                     $signBut.show();
                     $regBut.show();
-                    $postsBlock.hide();
+
                     $registerBlock.hide().html('');
                     $loginBlock.hide().html('');
                     $signOutBut.hide();
+
                     $findLock.hide();
 
                 } else {
-                    console.log('cur = ', currentUserModel);
                     GLOBAL.router.navigate('/connected_user/' + currentUserModel.get('_id'), {trigger: true});
                 }
             });
+        },
+
+        inviteToFriends: function () {
+            console.log('We come to INVITE TO FRIENDS PAGE now');
+            var $postsBlock = $('#postsBlock');
+            var inviteToFriendsColInstance;
+
+            currModel(function(currentUserModel) {
+                if (currentUserModel) {
+                    $menuBlock.html('').append(_.template(menuPageTemp));
+
+                    $postList.html('');
+                    $postsBlock.hide();
+
+                    $containerHeaderBlock.html('').show();
+
+                    $signBut.hide();
+                    $regBut.hide();
+
+                    $findLock.hide();
+
+                    inviteToFriendsColInstance = new InvitesToFriendsColl();
+                    new InvitesView({collection: inviteToFriendsColInstance});
+                }
+            })
         },
 
         changeLogo: function () {
@@ -137,16 +181,20 @@ define([
             var $postsBlock = $('#postsBlock');
 
             currModel(function (currentUserModel) {
-                $containerHeaderBlock.html('').show().append(_.template(uploadFilePageTemp));
+                if (currentUserModel) {
+                    $menuBlock.html('').append(_.template(menuPageTemp));
+                    $containerHeaderBlock.hide().html('').append(_.template(uploadFilePageTemp)).slideDown();
 
-                $signOutBut.show();
-                $postList.html('');
-                $postsBlock.hide();
-                $registerBlock.hide().html('');
-                $loginBlock.hide().html('');
-                $signBut.hide();
-                $regBut.hide();
-                $findLock.hide();
+                    $postList.html('');
+                    $postsBlock.hide();
+
+                    $signBut.hide();
+                    $regBut.hide();
+
+                    $findLock.hide();
+                } else {
+                    GLOBAL.router.navigate('/#main', {trigger: true});
+                }
             });
         },
 
@@ -154,213 +202,241 @@ define([
             console.log('We come to WELCOME PAGE now');
 
             currModel(function (currentUserModel) {
-                var $signForSendEmailBut = $('#signForSendEmailBut');
-                var $postsBlock = $('#postsBlock');
+                if (currentUserModel) {
+                    var $postsBlock = $('#postsBlock');
 
-                $containerHeaderBlock.html('').show().append(_.template(sendInvitePageTemp));
+                    $menuBlock.html('').append(_.template(menuPageTemp));
+                    $containerHeaderBlock.html('').hide().append(_.template(sendInvitePageTemp)).slideDown('slow');
 
-                $signForSendEmailBut.show();
+                    $postList.html('');
+                    $postsBlock.hide();
 
-                $postList.html('');
-                $postsBlock.hide();
-                $registerBlock.hide().html('');
-                $loginBlock.hide().html('');
-                $signBut.hide();
-                $regBut.hide();
-                $findLock.hide();
+                    $signBut.hide();
+                    $regBut.hide();
+
+                    $findLock.hide();
+                } else {
+                    GLOBAL.router.navigate('/#main', {trigger: true});
+                }
             });
         },
 
         showPosts: function () {
             console.log('We come to POSTS PAGE now');
             currModel(function (currentUserModel) {
-                var $postBlock = $('#post-block');
-                var $placeForPostBlock = $('#placeForPostBlock');
+                if (currentUserModel) {
+                    var postColInstance;
+                    var $postBlock = $('#post-block');
+                    var $placeForPostBlock = $('#placeForPostBlock');
 
-                $containerHeader.show();
-                $containerHeaderBlock.html('').hide();
-                $postList.html('');
-                $postsBlock.show();
-                $postBlock.show();
+                    $menuBlock.html('').append(_.template(menuPageTemp));
+                    $containerHeader.show();
+                    $containerHeaderBlock.html('').hide();
+                    $postList.html('');
+                    $postsBlock.show();
+                    $postBlock.show();
+                    $placeForPostBlock.html('').show().append(_.template(postBlockPageTemp));
 
-                $placeForPostBlock.html('').show().append(_.template(postBlockPageTemp));
+                    $signOutBut.show();
+                    $signBut.hide();
+                    $regBut.hide();
 
-                $registerBlock.hide().html('');
-                $loginBlock.hide().html('');
-                $welcomeBlock.hide();
-                $signOutBut.show();
-                $signBut.hide();
-                $regBut.hide();
-                $findLock.hide();
+                    $findLock.hide();
 
-                GLOBAL.initUsers();
-                GLOBAL.initPosts();
+                    postColInstance = new PostsCollection();
+                    new PostsView({collection: postColInstance});
 
-                $butDel.hide();
-                $butWrite.hide();
-                showUpdateButton();
+                    showUpdateButton();
+                } else {
+                    GLOBAL.router.navigate('/#main', {trigger: true});
+                }
             });
         },
 
         showFriends: function () {
             console.log('We come to SHOW FRIENDS PAGE now');
             currModel(function (currentUserModel) {
-                var $butWrite;
-                var $butKick;
-                var $postsBlock = $('#postsBlock');
+                if (currentUserModel) {
+                    var $butWrite;
+                    var $butKick;
+                    var $butMini;
+                    var $postsBlock = $('#postsBlock');
+                    var friendsColInstance;
 
-                $postList.html('');
-                $postsBlock.hide();
-                $containerHeader.show();
-                $containerHeaderBlock.html('').show();
-                $registerBlock.hide().html('');
-                $loginBlock.hide().html('');
-                $welcomeBlock.hide();
-                $signOutBut.show();
-                $signBut.hide();
-                $regBut.hide();
-                $findLock.hide();
+                    $menuBlock.html('').append(_.template(menuPageTemp));
 
-                GLOBAL.initFriends();
+                    $postList.html('');
+                    $postsBlock.hide();
 
-                $('.butMini').hide();
-                $butKick = $('.butKick');
-                $butWrite = $('.butWrite');
+                    $containerHeaderBlock.html('').show();
 
-                $butKick.show();
-                $butWrite.show();
+                    $signBut.hide();
+                    $regBut.hide();
+                    $findLock.hide();
+
+                    friendsColInstance = new FriendsPagesCollection();
+                    new FriendsPageView({collection: friendsColInstance});
+
+                    $butKick = $('.butKick');
+                    $butWrite = $('.butWrite');
+
+                    $butKick.show();
+                    $butWrite.show();
+                } else {
+                    GLOBAL.router.navigate('/#main', {trigger: true});
+                }
+            });
+        },
+
+        showFind: function () {
+            console.log('We come to FIND USERS PAGE now');
+            var $postsBlock = $('#postsBlock');
+
+            currModel(function (currentUserModel) {
+                if (currentUserModel) {
+                    $menuBlock.html('').append(_.template(menuPageTemp));
+                    $findLock.html('').append(_.template(findButtonTemp));
+
+                    $postList.html('');
+                    $postsBlock.hide();
+
+                    $containerHeaderBlock.html('').show();
+
+                    $signBut.hide();
+                    $regBut.hide();
+
+                    $findLock.show();
+
+                 } else {
+                    GLOBAL.router.navigate('/#main', {trigger: true});
+                }
             });
         },
 
         showUsers: function () {
             console.log('We come to FIND USERS PAGE now');
+            var $postsBlock = $('#postsBlock');
+            var userColInstance;
 
             currModel(function (currentUserModel) {
-                $postList.html('');
-                $postsBlock.hide();
-                $containerHeader.show();
-                $containerHeaderBlock.html('').show();
-                $registerBlock.hide().html('');
-                $loginBlock.hide().html('');
-                $welcomeBlock.hide();
-                $signOutBut.show();
-                $signBut.hide();
-                $regBut.hide();
-                $findLock.show();
+                if (currentUserModel) {
+                    $menuBlock.html('').append(_.template(menuPageTemp));
 
-                GLOBAL.initUsers();
+                    $postList.html('');
+                    $postsBlock.hide();
 
-                hideFriends(currentUserModel);
+                    $containerHeaderBlock.html('').show();
 
-                showUpdateButton();
+                    $signBut.hide();
+                    $regBut.hide();
 
+                    $findLock.hide();
 
+                    userColInstance = new UserPagesCollection();
+                    new UserPagesView({ model: currentUserModel, collection: userColInstance});
+
+                    //hideFriends({model: currentUserModel});
+                    showUpdateButton();
+                } else {
+                    GLOBAL.router.navigate('/#main', {trigger: true});
+                }
             });
         },
 
-        register: function () {
+        register: function (email) {
             currModel(function (currentUserModel) {
                 if (!currentUserModel) {
                     console.log('We come to REGISTRATION PAGE now');
 
-                    $postList.html('');
-                    $postsBlock.hide();
                     $loginBlock.hide().html('');
                     $welcomeBlock.hide();
                     $containerHeader.hide();
-                    $findLock.hide();
 
                     $signOutBut.hide();
-                    $signBut.show();
-                    $regBut.show();
 
-                    new RegisterPageView();
+                    if (email) {
+                        new RegisterPageView({model: email});
+                    } else {
+                        new RegisterPageView();
+                    }
                 } else {
-                    console.log('cur = ', currentUserModel);
                     GLOBAL.router.navigate('/connected_user/' + currentUserModel.get('_id'), {trigger: true});
                 }
             });
         },
+
         login: function () {
             currModel(function (currentUserModel) {
                 if (!currentUserModel) {
                     console.log('We come to LOGIN PAGE now');
 
-                    $postList.html('');
                     $welcomeBlock.hide();
-                    $postsBlock.hide();
                     $containerHeader.hide();
-                    $findLock.hide();
+
                     $registerBlock.hide().html('');
                     $signOutBut.hide();
-                    $signBut.show();
-                    $regBut.show();
-                    console.log('now login');
+
                     new LoginPageView();
                 } else {
-                    console.log('cur = ', currentUserModel);
                     GLOBAL.router.navigate('/connected_user/' + currentUserModel.get('_id'), {trigger: true});
                 }
             });
         },
+
         restore: function () {
             currModel(function (currentUserModel) {
                 if (!currentUserModel) {
                     console.log('We come to RESTORE PASSWORD PAGE now');
 
-                    $postList.html('');
                     $welcomeBlock.hide();
-                    $postsBlock.hide();
                     $containerHeader.hide();
                     $registerBlock.hide().html('');
-                    $loginBlock.html('').hide().append(_.template(restoreTemp)).slideDown('slow');
-                    $signOutBut.hide();
-                    $findLock.hide();
 
-                    $signBut.show();
-                    $regBut.show();
+                    $signOutBut.hide();
+
+                    $loginBlock.html('').hide().append(_.template(restoreTemp)).slideDown('slow');
+
                 } else {
-                    console.log('cur = ', currentUserModel);
                     GLOBAL.router.navigate('/connected_user/' + currentUserModel.get('_id'), {trigger: true});
                 }
             });
         },
+
         restorePass: function (token) {
             currModel(function (currentUserModel) {
                 if (!currentUserModel) {
                     console.log('We come to RESTORE PASSWORD PAGE 2 now');
 
-                    $postList.html('');
                     $welcomeBlock.hide();
-                    $postsBlock.hide();
                     $containerHeader.hide();
                     $registerBlock.hide().html('');
                     $signOutBut.hide();
+
                     $findLock.hide();
 
                     $signBut.show();
                     $regBut.show();
+
+                    //creating new model for checking tokens
                     model = new ChangeStateModel({_id: token});
+
+                    //if token checking is true than rendering page
                     new RestorePageView({model: model});
                 } else {
-                    console.log('cur = ', currentUserModel);
                     GLOBAL.router.navigate('/connected_user/' + currentUserModel.get('_id'), {trigger: true});
                 }
             });
         },
+
         connUser: function (id) {
             console.log('We come to USER PAGE now');
 
-            var Number;
             var $postsBlock = $('#postsBlock');
             var $postBlock = $('#post-block');
-
-            GLOBAL.initPosts();
-            //GLOBAL.initUsers();
-            GLOBAL.getUserInstance().getDataToCollection ();
-            GLOBAL.getFriendsInstance().getDataToCollection ();
+            var $butMini = $('.butMini');
 
             //show and hide buttons
+            $menuBlock.html('').append(_.template(menuPageTemp));
             $postList.html('');
             $postBlock.show();
             $postsBlock.hide();
@@ -370,9 +446,8 @@ define([
             $findLock.hide();
             $signBut.hide();
             $regBut.hide();
-
             $signOutBut.show();
-            $('.butMini').show();
+            $butMini.show();
             $containerHeader.show();
             $containerHeaderBlock.show().html(_.template(userListBlockTemp));
 
@@ -386,124 +461,156 @@ define([
                 var $butWrite;
                 var $butKick;
                 var $butAdd;
+                var userPostColl;
+                var i;
+
+                //adding menu Block
+                $menuBlock.html('').append(_.template(menuPageTemp));
 
                 //create new user page for user id
                 userViewInstance = new NewUserPageView({model: currentUserModel});
 
+                userViewInstance.template = _.template(friendPageTemp);
+
                 //append user page in to html page
                 $forUsersHeader.hide().append(userViewInstance.render().el).slideDown('fast');
 
-                userPosts = GLOBAL.postColInstance.where({ 'createrId': currentUserModel.get('_id')});
+                //creating new PostCollection and fetching and filtering and rendering users posts
+                userPostColl = new PostsCollection();
+                userPostColl.fetch({
+                    success: function (coll) {
+                        userPosts = coll.where({ 'createrId': currentUserModel.get('_id')});
 
-                for (Number in userPosts) {
-                    npv = new NewPostView({model:userPosts[Number]});
-                    $postList.hide().append(npv.render().el).slideDown('slow');
-                }
+                        for (i = 0; i < userPosts.length; i++) {
+                            npv = new NewPostView({model: userPosts[i]});
+                            $postList.hide().append(npv.render().el).slideDown('slow');
+                        }
 
-                //show and hide buttons
+                        //show and hide buttons
+                        $butKick = $('.butKick');
+                        $butWrite = $('.butWrite');
+                        $butAdd = $('.butAdd');
+                        //$butDel = $('.butDel');
 
-                //var $butDel = $('.butDel');
-                $butKick = $('.butKick');
-                $butWrite = $('.butWrite');
-                $butAdd = $('.butAdd');
-
-                $butDel.hide();
-                $butKick.hide();
-                $butWrite.hide();
-                $butAdd.hide();
+                        //$butDel.hide();
+                        $butKick.hide();
+                        $butWrite.hide();
+                        $butAdd.hide();
+                    }
+                });
             });
         },
+
         chat: function () {
             currModel(function (currentUserModel) {
                 console.log('We come to CHAT now');
-                var $postsBlock = $('#postsBlock');
-                var $showMessages = $('#showMessages');
-                var $signForSendEmailBut = $('#signForSendEmailBut');
+                if (currentUserModel) {
+                    var $postsBlock = $('#postsBlock');
+                    var $showMessages = $('#showMessages');
 
-                $showMessages.html('');
-                $signForSendEmailBut.show();
-                $findLock.hide();
+                    $menuBlock.html('').append(_.template(menuPageTemp));
+                    $showMessages.html('');
 
-                $postList.html('');
-                $postsBlock.hide();
-                $registerBlock.hide().html('');
-                $loginBlock.hide().html('');
+                    $findLock.hide();
 
-                GLOBAL.initChat(currentUserModel);
+                    $postList.html('');
+                    $postsBlock.hide();
 
-                $signBut.hide();
-                $regBut.hide();
+                    GLOBAL.initChat(currentUserModel);
+                    //new ChatView({model: currentUserModel});
+
+                    $signBut.hide();
+                    $regBut.hide();
+                } else {
+                    GLOBAL.router.navigate('/#main', {trigger: true});
+                }
             });
         },
+
         correspondence: function (id) {
 
             currModel(function (currentUserModel) {
-                var model = new Backbone.Model({
-                    user: currentUserModel,
-                    opponent: GLOBAL.friendsColInstance.where({_id: id})
-                });
-                var $showMessages = $('#showMessages');
-                var $signForSendEmailBut = $('#signForSendEmailBut');
+                if (currentUserModel) {
 
-                console.log('We come to CORRESPONDENCE now');
-                console.log('user = ', model.get('user'), 'opponent = ', model.get('opponent') );
+                    //creating model for correspondence two users
+                    var $showMessages = $('#showMessages');
+                    var model = new Backbone.Model({
+                        user: currentUserModel,
+                        opponent: id
+                    });
 
-                $showMessages.html('');
-                $signForSendEmailBut.show();
-                $findLock.hide();
+                    console.log('We come to CORRESPONDENCE now');
+                    console.log('user = ', model.get('user').get('_id'), 'opponent = ', model.get('opponent') );
 
-                $postList.html('');
-                $postsBlock.hide();
-                $registerBlock.hide().html('');
-                $loginBlock.hide().html('');
+                    $menuBlock.html('').append(_.template(menuPageTemp));
+                    $showMessages.html('');
 
-                GLOBAL.initCorrespondence(model);
+                    $findLock.hide();
 
-                $signBut.hide();
-                $regBut.hide();
+                    $postList.html('');
+                    $postsBlock.hide();
+
+                    //new CorrespondenceView({model: model});
+                    GLOBAL.initCorrespondence(model);
+
+                    $signBut.hide();
+                    $regBut.hide();
+                } else {
+                    GLOBAL.router.navigate('/#main', {trigger: true});
+                }
             });
         },
+
         locationFind: function () {
             currModel(function (currentUserModel) {
-                var findForDist;
-                var $postsBlock = $('#postsBlock');
-                var $editKm = $('#editKm');
-                var nupv;
+                if (currentUserModel) {
+                    var findForDistInstance;
+                    var $postsBlock = $('#postsBlock');
+                    var $editKm = $('#editKm');
+                    var nupv;
 
-                console.log('We come to findLocate page');
-                console.log('val of find = ', $editKm.val());
+                    console.log('We come to findLocate page');
+                    console.log('val of find = ', $editKm.val());
 
-                $postList.html('');
-                $postsBlock.hide();
-                $containerHeader.show();
-                $containerHeaderBlock.html('').show();
-                $registerBlock.hide().html('');
-                $loginBlock.hide().html('');
-                $welcomeBlock.hide();
-                $signOutBut.show();
-                $signBut.hide();
-                $regBut.hide();
-                $findLock.show();
+                    $menuBlock.html('').append(_.template(menuPageTemp));
 
-                console.log('uCI ', GLOBAL.userColInstance);
+                    $postList.html('');
+                    $postsBlock.hide();
 
-                findForDist = _.filter(GLOBAL.userColInstance.toArray(), function (model) {
-                    var dist1 = parseFloat($editKm.val());
-                    var dist2 = parseFloat(model.get('dist'));
-                    console.log('dist1 => ',dist1);
-                    console.log('dist2 => ',dist2);
+                    $containerHeaderBlock.html('').show();
 
-                    return dist1 >=  dist2;
-                });
+                    $signBut.hide();
+                    $regBut.hide();
 
-                findForDist.forEach(function (model) {
-                    nupv = new NewUserPageView({model: model});
-                    $containerHeaderBlock.append(nupv.render().el);
-                });
+                    findForDistInstance = new UserPagesCollection();
 
-                hideFriends(currentUserModel);
+                    findForDistInstance.on('reset', function(newFindForDistInctance){
+                        var newFindForDist;
 
-                showUpdateButton();
+                        //filtering users on specific distance
+                        newFindForDist = _.filter(newFindForDistInctance.toArray(), function (model) {
+                            var dist1 = parseFloat($editKm.val());
+                            var dist2 = parseFloat(model.get('dist'));
+                            console.log('dist1 => ',dist1);
+                            console.log('dist2 => ',dist2);
+
+                            return dist1 >=  dist2;
+                        });
+
+                        //render filtered users
+                        newFindForDist.forEach(function (model) {
+                            nupv = new NewUserPageView({model: model});
+                            $containerHeaderBlock.append(nupv.render().el);
+                        });
+
+                        hideFriends({model: currentUserModel});
+                        showUpdateButton();
+                    }, this);
+
+                    findForDistInstance.fetch({reset: true});
+                } else {
+                    GLOBAL.router.navigate('/#main', {trigger: true});
+                }
             })
         }
     });

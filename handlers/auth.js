@@ -22,6 +22,7 @@ module.exports = function () {
 
         console.log('Receive a POST request for User Log In !');
 
+        //when user is authorized, update him coordinates for computing distance
         if (req.body.coords) {
             UserDb.update({username: username}, {coords: req.body.coords}, function(){
                 console.log('coords updated for'+ username + '!');
@@ -34,16 +35,20 @@ module.exports = function () {
                 next(err);
             }
 
+            //user can entering when user is applied -> true
             if ((user) && (user.get('applied'))) {
                 console.log('User' + user.username + 'is found');
 
+                //checking hashed passwords
                 if (user.checkPassword(password)) {
                     console.log('password for ' + user.username + ' is true!');
+
                     //creating session with user identificator and user coords
                     req.session.user = {
                         userId: user._id,
                         username: user.username,
-                        coords: req.body.coords
+                        coords: req.body.coords,
+                        admin: user.admin
                     };
 
                     delete user.hashedPassword;

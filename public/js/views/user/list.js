@@ -18,7 +18,7 @@ define([
     tempUser
 ) {
     var NewUserPageView = Backbone.View.extend({
-        tagName: "li",
+        //tagName: 'li',
 
         template: _.template(tempUser),
 
@@ -26,16 +26,13 @@ define([
 
             this.model.on('destroy', function () {
                 this.remove();
-                GLOBAL.getUserInstance().getDataToCollection();
                 showUpdateButton();
             }, this);
 
             this.on('fromFriendDelete', function () {
-                GLOBAL.getFriendsInstance().getDataToCollection();
-                //GLOBAL.getUserInstance().getDataToCollection();
-
                 this.remove();
             }, this);
+
 
         },
 
@@ -45,8 +42,6 @@ define([
             'click .updateUserButtonForm'      : 'updateUser',
             'click .cancelUpdateUserButtonForm': 'cancelUpdateUser',
             'click .butAdd'                    : 'addUserToFriends',
-            'click .butKick'                   : 'kickUserFromFriends',
-            'click .butWrite'                  : 'redirectToCorrespondence'
         },
 
         //adding user to friends
@@ -54,27 +49,22 @@ define([
             var self = this;
             var modelForAddFriend = new FriendModel();
 
+            GLOBAL.listInvites.push(this.model.get('_id'));
+
             modelForAddFriend.save({
                 userId: this.model.get('_id')
             }, {
                 success: function (response) {
-                    console.log("Adding user is success");
-                    console.log("firstUser = ", response.toJSON().firstUser);
-                    console.log("secondUser = ", response.toJSON().secondUser);
-                    GLOBAL.getFriendsInstance().getDataToCollection();
-                    //GLOBAL.getUserInstance().getDataToCollection();
+                    console.log('Adding insert to friends is success', response.toJSON().result);
+
                     self.remove()
                 },
                 error: function () {
-                    console.log("Adding user is failed!");
+                    console.log('Adding user is failed!');
                 }
             });
         },
 
-        //action when user clicked on the 'WRITE' button
-        redirectToCorrespondence: function () {
-            GLOBAL.router.navigate('#correspondence/' + this.model.get('_id'), {trigger: true});
-        },
 
         //showing form for update in user page
         showUpdateForm: function () {
@@ -82,32 +72,6 @@ define([
 
             $formUpdate.remove();
             this.$el.show().append(_.template(tempUpdateUser));
-        },
-
-        //deleting user from friends
-        kickUserFromFriends: function () {
-            var self = this;
-            var kickModel = this.model;
-            kickModel.urlRoot = function () {
-                return '/friends/'
-            };
-            console.log('del for friends! ', this.model.get('username'));
-            kickModel.save(null, {
-                success: function (response) {
-                    var $butMini = $('.butMini');
-                    var $butWrite = $('.butWrite');
-                    var $butKick = $('.butKick');
-
-                    console.log('deleted from friends user ' + response.toJSON().response);
-                    self.trigger('fromFriendDelete');
-                    $butMini.hide();
-                    $butWrite.show();
-                    $butKick.show();
-                },
-                error: function () {
-                    console.log('friend do not deleted from friends(((');
-                }
-            });
         },
 
         //hiding form for update in user page
@@ -133,15 +97,14 @@ define([
                 'address'  : $editAddressUpd.val()
             }, {
                 success: function (response) {
-                    console.log("Successfully UPDATE Data!))) with id " + response.toJSON()._id);
+                    console.log('Successfully UPDATE Data!))) with id ' + response.toJSON()._id);
                 },
                 error: function () {
-                    console.log("Failed Save data((((");
+                    console.log('Failed Save data((((');
                 }
             });
 
             $viewContentHeader.hide();
-            GLOBAL.getUserInstance().getDataToCollection();
             GLOBAL.router.navigate('#main', {trigger: true});
         },
 
@@ -151,10 +114,10 @@ define([
 
                 this.model.destroy({
                     success: function (response) {
-                        console.log("Successfully DELETED user with id " + response.toJSON()._id);
+                        console.log('Successfully DELETED user with id ' + response.toJSON()._id);
                     },
                     error: function () {
-                        console.log("Failed to DELETE user!")
+                        console.log('Failed to DELETE user!')
                     }
                 });
             }

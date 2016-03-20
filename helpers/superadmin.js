@@ -1,7 +1,7 @@
 module.exports = function(req, res, next) {
     var err;
 
-    if (req.session.user) {
+    if (req.session || req.session.user) {
         if (req.session.user.username === 'admin') {
             next();
         } else {

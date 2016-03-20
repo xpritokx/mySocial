@@ -1,55 +1,63 @@
-/**
- * Created by Pritok on 07.03.2016.
- */
 define([
     'Backbone',
     'Underscore',
 
-    'models/login',
     'models/chatMessage',
 
+    'collections/friend',
     'collections/chatMessages',
+
+    'views/friends/form',
 
     'text!templates/chatPage.html'
 ], function (
     Backbone,
     _,
 
-    UserLogModel,
     ChatMessage,
 
+    FriendsColl,
     ChatMessagesCol,
+
+    FriendsView,
 
     temp
 ) {
-    //var socket;
     var socket = io.connect();
 
     var ChatView = Backbone.View.extend({
         el: '#containerHeaderBlock',
         initialize: function() {
             var self = this;
+            var $logOut = $('#signOutBut');
+            var friendsColInstance;
+            $logOut.click(function () {
+                self.sendStatus('leaved');
+            });
 
             //waiting on the message and printing
             socket.on('message', function (data) {
                 console.log('emit message');
+
                 if (data.text) {
                     self.printMessage(data.username, data.text, data.date, data.img, data.idSender);
                 }
             });
 
-            //waiting on the message and printing
+            //waiting on event 'status' and send data on printing
             socket.on('status', function (data) {
-                console.log('emit status');
+                var $usersOnline = $('.usersOnline');
+
+                //if status equal 'leaved' and this user in friend than send data on printing and remove his image with online users
                 if ((data.text === 'leaved') && self.isFriend(data.userId)) {
-                    //console.log('user ', data.userId, 'is ', data.text);
                     self.printStatus(data.username, data.text);
                     $('.' + data.userId).remove();
                 }
+
+                //if status equal 'connect' and this user in friend than send data on printing and adding his image in online users
                 if ((data.text === 'connect') && self.isFriend(data.userId)) {
-                    console.log('deleting and appending!  ', data.username);
                     $('.' + data.userId).remove();
-                    $('.usersOnline').append('<img src="'+ data.img +'" class= "' + data.userId + '" style="width: 20px; height: 20px">');
+                    $usersOnline.append('<img src="'+ data.img +'" class= "' + data.userId + '" style="width:20px;height:20px">');
                     self.printStatus(data.username, data.text);
                 }
 
@@ -70,20 +78,22 @@ define([
                 self.printStatus(self.model.get('username'), 'connection is lost');
             });
 
-            this.render();
+            friendsColInstance = new FriendsColl();
+
+            friendsColInstance.on('reset', self.render, self);
+
+            friendsColInstance.fetch({reset: true});
+            //this.render();
         },
 
+        //function which react on the url action
         userIsNotActive: function () {
             var self = this;
 
-            //console.log('so what???!1!', self.model.get('username'));
-
+            //if user leave chat than send data that user 'leaved' chat
             $(window).bind('hashchange', function () {
 
-                //self.printStatus(self.model.get('username'), 'leaved');
-
                 self.sendStatus('leaved');
-
 
                 $(window).unbind('hashchange');
             });
@@ -97,40 +107,55 @@ define([
 
         //printing status of connection
         printStatus: function (user, text) {
+            var $showMessages = $('#showMessages');
             console.log('i printing status', user, text);
-            $('#showMessages').prepend('<li>' + user + ' is ' + text + '<hr></li>');
+
+            $showMessages.prepend('<li>' + user + ' is ' + text + '<hr></li>');
         },
 
         //printing message on the display
         printMessage: function (user, text, date, img, idSender) {
             var userNameCurr = this.model.get('username');
+            var userStatus = this.model.get('admin');
+            var $showMessages = $('#showMessages');
 
-            if (userNameCurr === 'admin') {
-                $('#showMessages').prepend('<li class = "messChat"><img class="chatImg" src="'+ img +'"><strong>' + user + '</strong><br><div class = "blockForChatText">' + text + '</div><br><h6>' + new Date(date).adecvatFormat() + '</h6><hr></li>')
+            //admin can see all messages
+            if (userStatus) {
+                $showMessages.prepend('<li class = "messChat"><img class="chatImg" src="'+ img +'"><strong>' + user + '</strong><br><div class = "blockForChatText">' + text + '</div><br><h6>' + new Date(date).adecvatFormat() + '</h6><hr></li>')
             } else if (this.isFriend(idSender) || (userNameCurr === user)) {
-                $('#showMessages').prepend('<li class = "messChat"><img class="chatImg" src="'+ img +'"><strong>' + user + '</strong><br><div class = "blockForChatText">' + text + '</div><br><h6>' + new Date(date).adecvatFormat() + '</h6><hr></li>')
+                $showMessages.prepend('<li class = "messChat"><img class="chatImg" src="'+ img +'"><strong>' + user + '</strong><br><div class = "blockForChatText">' + text + '</div><br><h6>' + new Date(date).adecvatFormat() + '</h6><hr></li>')
             }
         },
 
-
+        //sending status on server and printing status for user
         sendStatus: function (text) {
+            var $usersOnline = $('.usersOnline');
+
+            //binding method which see user on chat
             this.userIsNotActive();
-            //console.log('i sending status');
+
             socket.emit('status', {
                 text: text,
                 user: this.model
+            }, function (data) {
+                if (data) {
+                    data.online.forEach(function (img) {
+                        $usersOnline.append('<img src="'+ img.img +'" class= "' + img.userId + '" style="width: 20px; height: 20px">');
+                    });
+                }
             });
-
         },
 
         //send message in to db
         sendMessage: function (e) {
-            if (((e.target.className !== 'sendInToChatButton') && (e.keyCode !== 13)) || (!$('#editMess').val().trim())) {
+            var $editMess = $('#editMess');
+            var $showMessages = $('#showMessages');
+            var text = $editMess.val();
+            var newMesModel =  new ChatMessage();
+
+            if (((e.target.className !== 'sendInToChatButton') && (e.keyCode !== 13)) || (!$editMess.val().trim())) {
                 return
             }
-
-            var text = $('#editMess').val();
-            var newMesModel =  new ChatMessage();
 
             //send data in to db
             newMesModel.save({
@@ -154,48 +179,51 @@ define([
                 text: text,
                 user: this.model
             }, function (data) {
-                $('#showMessages').prepend('<li class = "messChat"><img class="chatImg" src="'+ data.img +'"><strong>' + data.username + '</strong><br><div class = "blockForChatText">' + data.text + '</div><br><h6>' + new Date(data.date).adecvatFormat() + '</h6><hr></li>')
+                $showMessages.prepend('<li class = "messChat"><img class="chatImg" src="'+ data.img +'"><strong>' + data.username + '</strong><br><div class = "blockForChatText">' + data.text + '</div><br><h6>' + new Date(data.date).adecvatFormat() + '</h6><hr></li>')
             });
 
-            $('#editMess').val('');
+            $editMess.val('');
+
             return false;
         },
 
         //deleting message
         deleteMessage: function (e) {
-            if (this.model.get('username') === 'admin') {
-                if (e.target.id) {
-                    var modelForDelete = new ChatMessage({_id: e.target.id});
-                    modelForDelete.destroy({
-                        success: function() {
+            var modelForDelete;
+
+            if (e.target.id) {
+
+                //delete message with chat by id
+                modelForDelete = new ChatMessage({_id: e.target.id});
+
+                modelForDelete.destroy({
+                    success: function() {
+                        $('#' + e.target.id).hide(2000, function () {
                             $('#' + e.target.id).remove();
-                        },
-                        error: function () {
-                            console.log('message delete error!');
-                        }
-                    });
-                }
+                        });
+                    },
+
+                    error: function () {
+                        console.log('message delete error!');
+                    }
+                });
+
             }
         },
 
         //checking user on the friends
         isFriend: function (friendId) {
-            var i = 0;
             var masFriends = this.model.get('friends');
-            for (i; i < masFriends.length; i++) {
-                if (masFriends[i] === friendId) {
-                    return true
-                }
-            }
-            return false
+
+            return masFriends.indexOf(friendId) >= 0;
         },
 
         //printing messages on display from db
         renderMessagesWhichGet: function (messCol) {
             var self = this;
             var idCurrUser = self.model.get('_id');
+            var userStatus = self.model.get('admin');
             var userNameCurr = self.model.get('username');
-
 
             messCol.forEach(function (message) {
                 var senderImg = message.get('sender').img;
@@ -204,11 +232,13 @@ define([
                 var text = message.get('textMessage');
                 var date = message.get('date');
                 var id = message.get('_id');
+                var $showMessages = $('#showMessages');
 
-                if (userNameCurr == 'admin') {
-                    $('#showMessages').prepend('<li class = "messChat" id="' + id + '"><img class="chatImg" src="'+ senderImg +'"><strong>' + senderName + '</strong><br><div class = "blockForChatText">' + text + '</div><br><h6>' + new Date(date).adecvatFormat() + '</h6><hr></li>')
+                //admin can see messages all users
+                if (userStatus) {
+                    $showMessages.prepend('<li class = "messChat" id="' + id + '"><img class="chatImg" src="'+ senderImg +'"><strong>' + senderName + '</strong><br><div class = "blockForChatText">' + text + '</div><br><h6>' + new Date(date).adecvatFormat() + '</h6><hr></li>')
                 } else if (self.isFriend(senderId) || (senderId === idCurrUser)) {
-                    $('#showMessages').prepend('<li class = "messChat" id="' + id + '"><img class="chatImg" src="'+ senderImg +'"><strong>' + senderName + '</strong><br><div class = "blockForChatText">' + text + '</div><br><h6>' + new Date(date).adecvatFormat() + '</h6><hr></li>')
+                    $showMessages.prepend('<li class = "messChat" id="' + id + '"><img class="chatImg" src="'+ senderImg +'"><strong>' + senderName + '</strong><br><div class = "blockForChatText">' + text + '</div><br><h6>' + new Date(date).adecvatFormat() + '</h6><hr></li>')
                 }
             });
         },
@@ -219,21 +249,18 @@ define([
 
             chatMessagesColInstance.on('reset', this.renderMessagesWhichGet, this);
 
-            chatMessagesColInstance.fetch({
-                reset  : true
-            });
+            chatMessagesColInstance.fetch({reset: true});
         },
 
         render: function () {
-            this.$el.html('').show().append(_.template(temp));
+            //console.log('el = >', this.el);
 
-            //fetching friend collection
-            GLOBAL.getFriendsInstance().getDataToCollection();
+            this.$el.html('').show().append(_.template(temp));
 
             this.sendStatus('connect');
             this.getMessages();
 
-
+            return this;
         }
     });
 
