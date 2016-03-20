@@ -7,9 +7,9 @@ define([
     _,
     PostModel
 ) {
-    //collection for output Posts
+    //collection for storage models Posts
     var PostsCollection = Backbone.Collection.extend({
-        url: "/posts",
+        url: '/posts',
         model: PostModel
     });
 

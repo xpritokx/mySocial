@@ -7,9 +7,9 @@ define([
     _,
     UserPageModel
 ) {
-    //collection for output userPages
+    //collection for storage models userPages
     var UserPagesCollection = Backbone.Collection.extend({
-        url: "/users/",
+        url: '/users/',
         model: UserPageModel
     });
 
