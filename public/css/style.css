@@ -1,11 +1,16 @@
+
+/*  CSS TEGS  */
+
 p {
     font-size: 20px;
 }
 
-a {
-    text-decoration: none;
-    color: black;
-    cursor: pointer;
+input:focus {
+    outline-color: greenyellow;
+}
+
+input:hover {
+    outline-color: greenyellow;
 }
 
 input[type=file] {
@@ -21,10 +26,10 @@ input[type=submit] {
     font-family: franklin gothic medium, serif;
     font-size: 25px;
     padding: 4px;
-    background-color: greenyellow;;
+    background-color:greenyellow;;
     height: 40px;
     width: 200px;
-    margin-top: 10px;
+    margin: 10px auto 0 auto;
     display: inline-block;
 }
 
@@ -32,8 +37,14 @@ input[type=submit]:hover {
     background-color: red;
 }
 
+a {
+    text-decoration:none;
+    color: black;
+    cursor: pointer;
+}
+
 a:hover {
-    text-decoration: none;
+    text-decoration:none;
     color: black;
 }
 
@@ -67,7 +78,7 @@ main {
 }
 
 footer {
-    margin: -30px auto;
+    margin:  auto;
     text-align: center;
     width: 800px;
     height: 50px;
@@ -75,6 +86,8 @@ footer {
 }
 
 
+
+/*  CSS ID  */
 
 
 #container {
@@ -98,9 +111,21 @@ footer {
     color: red;
 }
 
+#post-list {
+    margin: auto;
+}
+
 #errorLabLog {
     font-size: 25px;
     color: red;
+}
+
+#editMess {
+    display: block
+}
+
+#editMessUser {
+    display: block
 }
 
 #logo {
@@ -117,23 +142,13 @@ footer {
     text-align: center;
 }
 
-#avatar {
-    float: right;
-    margin-bottom: 50px;
-
-}
-
-#ava {
-    width: 150px;
-    height: 150px;
-    opacity: 0.9;
-}
 
 
 #containerUpload2 {
     width: 100%;
     text-align: center;
 }
+
 
 #logo-block {
     display: inline-block;
@@ -146,6 +161,7 @@ footer {
 }
 
 
+
 #containerHeaderBlock {
     position: relative;
     display: inline-block;
@@ -153,11 +169,12 @@ footer {
     width: 79%;
     border-left-style: solid;
     border-color: greenyellow;
-    background-color: RGBA(173, 255, 47, 0.2);
+    text-overflow: ellipsis;
+    background-color: white;
+    /*background-color: RGBA(173, 255, 47, 0.2);*/
 }
 
 #containerHeader {
-
     min-width: 200px;
     height: 250px;
     width: 100%;
@@ -173,6 +190,10 @@ footer {
     width: 20%;
     float: left;
 
+}
+
+#findLock {
+    display: inline-block;
 }
 
 
@@ -192,6 +213,23 @@ footer {
     text-align: center;
 }
 
+
+
+/*  CSS CLASSES  */
+
+.avatar {
+    float: right;
+    margin-bottom: 50px;
+
+}
+
+.ava {
+    width: 150px;
+    height: 150px;
+    opacity: 0.9;
+}
+
+
 .but {
     text-align: center;
     font-family: franklin gothic medium, serif;
@@ -204,12 +242,75 @@ footer {
     background-color: greenyellow;
 }
 
+
+
 .but:hover {
     background-color: red;
     height: 80px;
     cursor: pointer;
 }
 
+.chatImg {
+    width: 20px;
+    height: 20px;
+    display: inline-block;
+}
+
+.blockForChatText {
+    width: 250px;
+    word-break: break-all;
+    margin: auto;
+}
+
+.sendInToChatButton {
+    text-align: center;
+    font-family: franklin gothic medium, serif;
+    font-size: 25px;
+    padding: 4px;
+    background-color: greenyellow;;
+    height: 40px;
+    width: 150px;
+    display: inline-block;
+    /*display: none;*/
+}
+
+.sendInToCorrButton {
+    text-align: center;
+    font-family: franklin gothic medium, serif;
+    font-size: 25px;
+    padding: 4px;
+    background-color: yellow;;
+    height: 40px;
+    width: 150px;
+    display: inline-block;
+    /*display: none;*/
+}
+
+.sendInToCorrButton:hover {
+    background-color: red;
+    cursor: pointer;
+}
+
+.deletePostButtonForm {
+    text-align: center;
+    font-family: franklin gothic medium, serif;
+    font-size: 25px;
+    padding: 4px;
+    background-color: greenyellow;;
+    height: 40px;
+    width: 150px;
+    display: inline-block;
+}
+
+.deletePostButtonForm:hover {
+    background-color: red;
+    cursor: pointer;
+}
+
+.sendInToChatButton:hover {
+    background-color: red;
+    cursor: pointer;
+}
 
 .menuName {
     cursor: pointer;
@@ -217,7 +318,6 @@ footer {
 }
 
 .menuName a {
-
     text-decoration: none;
 }
 
@@ -235,7 +335,20 @@ footer {
     text-decoration:none;
 }
 
+.statusMessages {
+    display: inline-block;
+    background: red;
+    -moz-border-radius: 50px;
+    -webkit-border-radius: 50px;
+    border-radius: 50px;
+    color: black;
+}
 
+.statusMessages:hover {
+    color: black;
+    background: red;
+
+}
 
 .menuName:hover {
     color: greenyellow;
@@ -256,4 +369,110 @@ footer {
 .butMini:hover {
     background-color: red;
     cursor: pointer;
+}
+
+.butKick{
+    background-color: yellow;
+    float: right;
+    margin-bottom: 50px
+}
+
+.butKick:hover {
+    background-color: red;
+}
+
+.butWrite{
+    background-color: yellow;
+    float: right;
+    margin-bottom: 50px
+}
+
+.butWrite:hover {
+    background-color: red;
+}
+
+
+
+
+
+.tool { /* стиль текста, наведя или нажав на который появится пояснение */
+    display: inline-block;
+    background: black;
+    -moz-border-radius: 50px;
+    -webkit-border-radius: 50px;
+    border-radius: 50px;
+    color: white;
+    position: relative;
+    text-indent: 0px;
+    font-size: 70%;
+}
+.tool > p { /* стиль появляющейся подсказки */
+    position: absolute;
+    z-index: 1000;
+    color: black;
+    left: 0; /* = max-width */
+    right: 0; /* = max-width */
+    width: -moz-max-content;
+    width: max-content;  /* ширина подсказки может быть не более содержимого */
+    max-width: 40em;  /* ширина подсказки может быть не более 20em */
+    max-height: 80vh; /* необязательное ограничение по высоте подсказки, 1vh — это 1% от ширины окна */
+    overflow: auto;
+    visibility: hidden;
+    margin: 0 auto .4em; /* поднята на .4em над текстом, наведя или нажав на который появится пояснение */
+    padding: .3em;
+    border: solid greenyellow;
+    font-size: 30px;
+    background: #fff;
+    line-height: normal;
+    cursor: auto;
+}
+
+.tool:after { /* треугольничек под подсказкой; тут тоже везде .4em */
+    content: "";
+    position: absolute;
+    top: -.4em;
+    left: 50%;
+    visibility: hidden;
+    margin: 0 0 0 -.4em;
+    border: .4em solid greenyellow;;
+    cursor: auto;
+}
+
+.tool:before { /* поле между текстом, наведя или нажав на который появится пояснение, и подсказкой нужно чтобы, если перевести курсор мышки на подсказку, та не исчезла; тут тоже везде .4em */
+    content: "";
+    position: absolute;
+    top: -.4em;
+    left: 0;
+    right: 0;
+    height: .4em;
+    visibility: hidden;
+}
+.tool:hover > p,
+.tool:hover:before,
+.tool:hover:after,
+.tool:focus > p,
+.tool:focus:before,
+.tool:focus:after {
+    visibility: visible;
+    transition: 0s .4s;
+}
+.tool:focus { /* убрать рамку в Хроме */
+    outline: none;
+}
+.tool.anim > p,
+.tool.anim:after { /* анимация */
+    opacity: 0;
+    transform: translateX(-1.5em) scale(.3);
+    transform-origin: top;
+}
+.tool.anim:after {
+    transform: translateY(-.7em) scale(.3); /* 1.7 = 1.5 / (1.4*2) */
+}
+.tool.anim:hover > p,
+.tool.anim:hover:after,
+.tool.anim:focus > p,
+.tool.anim:focus:after {
+    opacity: 1;
+    transition: .6s .4s;
+    transform: translateY(0);
 }

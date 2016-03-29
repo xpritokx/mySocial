@@ -1,0 +1,14 @@
+<div id = "postsBlock">
+    <div id = "inputPost" style="width: 100%; text-align: center">
+        <h3>Write your post here!</h3>
+        <form method="post" action="/posts" enctype="multipart/form-data">
+            <p> post title </p>
+            <input id="postTitle" name="postTitle" type="text">
+            <p> post content </p>
+            <input id="postContent" name="postContent" type="text">
+            <p> post image </p>
+            <input accept="image/jpeg,image/png,image/gif" type="file" name="postImage"/>
+            <input type="submit" value="AddPost"/>
+        </form>
+    </div>
+</div>

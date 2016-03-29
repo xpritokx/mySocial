@@ -1,0 +1,504 @@
+Index: routes/index.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- routes/index.js	(revision 6d7968ca725011b094ad1f7549e7c814bc46e00c)
++++ routes/index.js	(revision )
+@@ -1,4 +1,5 @@
+ var UserDb = require('../dbmodels/user').User;
++var PostDb = require('../dbmodels/post').Post;
+ var User = require('../models/User');
+ var Admin = require('../models/Admin');
+ var mongoose = require('mongoose');
+@@ -7,13 +8,15 @@
+ var nodemailer = require('nodemailer');
+ var smtpTransport = require('nodemailer-smtp-transport');
+ 
++//TESTING strings for models
+ admin = new Admin.Admin(6,5,4,3,2,1,0);
+ user = new User.User(1,2,3,4,5,6,7);
+ 
++//exports for execution our major express app
+ module.exports = function(app) {
+-
++    // function which send message to email
+     function sendEmail(to, title, text) {
+-
++        //description authorization in to email client
+         var transport = nodemailer.createTransport(
+             smtpTransport({
+                 service: 'gmail',
+@@ -23,14 +26,14 @@
+                 }
+             })
+         );
+-
++        //params which routing when and what sending
+         var params = {
+             from: 'xpritokx@gmail.com',
+             to: to,//req.body.email,
+             subject: title,//sender + ' welcomes you!',
+             text: text//'Hello i want to invite you in the Public House! Just click in this link www.publichouse.com.ua'
+         };
+-
++        //function which sending message whith our param in to email
+         transport.sendMail(params, function (err, res) {
+             if (err) {
+                 console.error("mail err = ", err);
+@@ -47,6 +50,7 @@
+ 
+     // output all users in JSON Format
+     app.route('/users').get(function(req, res){
++
+         UserDb.find(function(err, users) {
+             users.forEach(function(item) {
+                console.log('Received a GET request for _id for /users ' + item._id);
+@@ -65,7 +69,7 @@
+         user.save(function(err, doc) {
+             var to = user.get('email');
+             var title = 'Verification Public House';
+-            var text = 'click to link for verification =) localhost:3060/#connected_user/' + user.get('_id');
++            var text = 'click to link for verification =) "localhost:3060/#connected_user/' + user.get('_id') + '"';
+             sendEmail(to ,title, text);
+ 
+             res.send(doc);
+@@ -85,13 +89,21 @@
+                 if (masFriends.length >= 1) {
+                     var collFriends = [];
+                     var i = 0;
++                    var deletedUsers = 0;
+                     for (i; i < masFriends.length; i++) {
+                         console.log('i am add friends ' + masFriends[i]);
+                         UserDb.findById(masFriends[i], function(err, user) {
++                            if (user) {
+-                            collFriends.push(user);
++                                collFriends.push(user);
+-                            if (collFriends.length == masFriends.length) {
++                                if ((collFriends.length + deletedUsers) == masFriends.length) {
+-                                res.send(collFriends);
+-                            }
++                                    res.send(collFriends);
++                                }
++                            } else {
++                                deletedUsers++;
++                                if ((collFriends.length + deletedUsers) == masFriends.length) {
++                                    res.send();
++                                }
++                            }
+                         });
+                     }
+                 } else {
+@@ -180,10 +192,14 @@
+         console.log('this passed validation user');
+ 
+         if (req.session.user) {
++            UserDb.findOne({_id: req.session.user}, function(err, user){
+-            res.send({
+-                val: true,
++                res.send({
++                    val: true,
+-                userId: req.session.user
++                    userId: req.session.user,
++                    verify: user.get('applied')
+-            });
++                });
++            });
++
+         } else {
+             res.send({val: false});
+         }
+@@ -299,6 +315,48 @@
+     });
+ 
+ 
++    app.post('/addPost',function(req, res) {
++        console.log('i am here in upload image for post!!!');
++
++        var form = new multiparty.Form();
++
++        form.parse(req, function(err, fields, files) {
++
++            var img = files.postImage[0];
++            fs.readFile(img.path, function(err, data) {
++                var path = './public/images/' + img.originalFilename;
++
++                fs.writeFile(path, data, function(err){
++                    if(err) {
++                        console.log(err);
++                    }
++                });
++
++                var post = {
++                    'title'   : fields.postTitle[0],
++                    'content' : fields.postContent[0],
++                    'img'     : (path).slice(9),
++                    'creater' : req.session.user
++                };
++
++                postModel = new mongoose.models.Post(post);
++                postModel.save();
++                PostDb.find(function(err, posts) {
++                    posts.forEach(function(item) {
++                        console.log('Is created POST for _id ' + item._id);
++                        console.log('Is added to post img ' + item.img);
++                    });
++                });
++
++                console.log("path = ", path);
++                console.log("iD userSession = ",req.session.user);
++
++
++                res.redirect('/#showPosts');
++            });
++        });
++    });
++
+     app.post('/sendRestore', function(req, res){
+         console.log('"/sendRestore" verifing Email ' + req.body.email);
+         UserDb.findOne({email: req.body.email}, function(err, user) {
+@@ -315,6 +373,13 @@
+         });
+     });
+ 
++    app.post('/changeState', function(req, res) {
++        UserDb.update({_id: req.body.userId}, {applied: true}, function(){
++            console.log("state is updated!");
++            res.send();
++        })
++    });
++
+     // parsing POST userLog form and verification user and password in db
+     app.post('/userLog', function(req,res){
+         console.log('Receive a POST request for UserLog!');
+@@ -330,16 +395,18 @@
+ 
+         //finding one user which match our password and username in db, and output data to client
+         UserDb.findOne({username: username}, function(err, user){
+-            if (user) {
++            if ((user) && (user.get('applied'))) {
+                 if (user.checkPassword(password)){
+                     console.log("User is found");
+                     req.session.user = user._id;
+                     res.send(user);
+                 } else {
+                     console.log('password is not true!');
++                    res.send();
+                 }
+             } else {
+                 console.log('User is not found!');
++                res.send()
+             }
+         })
+ 
+\ No newline at end of file
+Index: public/index.html
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- public/index.html	(revision 6d7968ca725011b094ad1f7549e7c814bc46e00c)
++++ public/index.html	(revision )
+@@ -46,12 +46,14 @@
+                     <br>
+                     <ul id="menuList">
+                         <li class="menuName">
++                            <a href="#showPosts">Posts</a>
++                        </li>
++                        <li class="menuName">
+                             <a href="#changeLogo">Change logo</a>
+                         </li>
+                         <li class="menuName">
+                             <a href="#showFriends">Show Friends</a>
+                         </li>
+-                        <li class="menuName">Invite Friends</li>
+                         <li class="menuName">
+                             <a href="#showUsers">Find Friends</a>
+                         </li>
+@@ -61,9 +63,24 @@
+                     </ul>
+                 </div>
+                 <div id="containerHeaderBlock">
++
+                 </div>
++                <div id = "postsBlock" >
++                    <div id = "inputPost" style="width: 100%; text-align: center">
++                        <h3>Write your post here!</h3>
++                        <form method="post" action="/addPost" enctype="multipart/form-data">
++                            <p> post title </p>
++                            <input id="postTitle" name="postTitle" type="text">
++                            <p> post content </p>
++                            <input id="postContent" name="postContent" type="text">
++                            <p> post image </p>
++                            <input type="file" name="postImage"/>
++                            <input type="submit" value="AddPost"/>
++                        </form>
+-            </div>
++                    </div>
+-            <ul id="posts"></ul>
++                    <ul id = "posts-list"></ul>
++                </div>
++            </div>
+             <div id="welcomeBlock"></div>
+             <div id="login-block" style="text-align: center"></div>
+             <div id="register-block" style="text-align: center"></div>
+@@ -145,7 +162,6 @@
+             <input type="file" name="images"/>
+             <input type="submit" value="Post"/>
+         </form>
+-
+     </div>
+ </script>
+ 
+\ No newline at end of file
+Index: public/js/demo.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- public/js/demo.js	(revision 6d7968ca725011b094ad1f7549e7c814bc46e00c)
++++ public/js/demo.js	(revision )
+@@ -40,6 +40,8 @@
+         loginForm = new App.Views.LoginPage();
+ 
+         router = new App.Router;
++
++        changeState = new App.Models.ChangeState();
+     };
+ 
+ 
+@@ -48,7 +50,7 @@
+             $('#containerHeaderBlock').html('').show();
+             $('#signForSendEmailBut').show();
+ 
+-            $('#posts').hide().html('');
++            $('#postsBlock').hide();
+             $('#register-block').hide().html('');
+             $('#login-block').hide().html('');
+             $('#signBut').hide();
+@@ -59,6 +61,22 @@
+         }
+     };
+ 
++    App.Functions.showPosts = function(){
++        if (friendsView.get('userIsAuthorised')) {
++            $('#containerHeader').show();
++            $('#containerHeaderBlock').html('').hide();
++            $('#postsBlock').show();
++            $('#register-block').hide().html('');
++            $('#login-block').hide().html('');
++            $('#welcomeBlock').hide();
++            $('#signOutBut').show();
++            $('#signBut').hide();
++            $('#regBut').hide();
++        } else {
++            router.navigate('/connected_user/' + friendsView.get('userId'), {trigger: true});
++            //router.navigate('#main');
++        }
++    };
+ 
+     App.Functions.showedUpdateButtons = function() {
+         if(friendsView.get('username') !== 'admin') {
+@@ -76,7 +94,7 @@
+             $('#containerHeaderBlock').html('').show().append(template('uploadFile2'));
+             $('#signOutBut').show();
+ 
+-            $('#posts').hide().html('');
++            $('#postsBlock').hide();
+             $('#register-block').hide().html('');
+             $('#login-block').hide().html('');
+             $('#signBut').hide();
+@@ -88,9 +106,9 @@
+ 
+     App.Functions.showFriends = function() {
+         if (friendsView.get('userIsAuthorised')) {
+-            $('#posts').hide().html('');
++            $('#postsBlock').hide();
+             $('#containerHeader').show();
+-            $('#containerHeaderBlock').html('');
++            $('#containerHeaderBlock').html('').show();
+             $('#register-block').hide().html('');
+             $('#login-block').hide().html('');
+             $('#welcomeBlock').hide();
+@@ -109,9 +127,9 @@
+ 
+     App.Functions.showUsers = function() {
+             if (friendsView.get('userIsAuthorised')) {
+-                $('#posts').hide().html('');
++                $('#postsBlock').hide();
+                 $('#containerHeader').show();
+-                $('#containerHeaderBlock').html('');
++                $('#containerHeaderBlock').html('').show();
+                 $('#register-block').hide().html('');
+                 $('#login-block').hide().html('');
+                 $('#welcomeBlock').hide();
+@@ -135,8 +153,12 @@
+                     var userId = response.toJSON().userId;
+                     setTimeout(function(){
+                         console.log("JSON Valid val = ", response.toJSON().val);
++                        console.log("JSON Verify val = ", response.toJSON().verify);
++
+                         friendsView.set('userIsAuthorised', response.toJSON().val);
++                        friendsView.set('verify', response.toJSON().verify);
++
+-                        if (thisUser){
++                        if (thisUser) {
+                             friendsView.set('username', thisUser.get('username'));
+                         }
+                         friendsView.set('userId', userId);
+@@ -166,7 +188,7 @@
+ 
+     App.Functions.showOneUser = function(id) {
+         userIsValid();
+-        $('#posts').hide();
++        $('#postsBlock').hide();
+         $('#register-block').hide();
+         $('#login-block').hide();
+         $('#welcomeBlock').hide();
+@@ -174,29 +196,39 @@
+         $('#signBut').hide();
+         $('#regBut').hide();
+         $('.butMini').show();
++        $('#containerHeaderBlock').show();
++
++        console.log("user Is Verify?" , friendsView.get('verify'));
++        if (!friendsView.get('verified')){
++            changeState.set({userId: id});
++            changeState.save({
++                success: function() {
++                    console.log('user is changed');
++                }
++            });
++        }
++
++
+         App.Functions.loadModels(id);
+         setTimeout(function(){
+             var loadColl = App.Functions.loadModels(id);
+-            thisUser = loadColl.where({_id: id})[0];
+-            //console.log("load collection =", loadColl);
+             if (loadColl) {
+-                //console.log("id = ", id);
+-                //console.log("colFull = ",loadColl);
+-                //console.log("col = ",loadColl.where({_id: id})[0]);
++                var model = loadColl.where({_id: id})[0];
++                thisUser = model;
+                 friendsView.initialize();
+-                friendsView.set('userId', loadColl.where({_id: id})[0]);
++                friendsView.set('userId', model);
+                 friendsView.set('userIsAuthorised', true);
+                 userIsValid();
+-                var userView = new App.Views.NewUserPage({model: loadColl.where({_id: id})[0]});
++                var userView = new App.Views.NewUserPage({model: model});
+                 $('#containerHeader').show();
+-                $('#containerHeaderBlock').html(template('mainHeader'));
++                $('#containerHeaderBlock').show().html(template('mainHeader'));
+                 $('#forUsersHeader').append(userView.render().el);
+                 $('.butAdd').hide();
+                 $('.butSendMessage').hide();
+             } else {
+                 console.log("User else not load")
+             }
+-        }, 50);
++        }, 60);
+ 
+ 
+ 
+@@ -232,6 +264,10 @@
+         }
+     });
+ 
++    App.Models.ChangeState = Backbone.Model.extend({
++        url: "http://localhost:3060/changeState"
++    });
++
+     App.Models.AddFriends = Backbone.Model.extend({
+         url: "http://localhost:3060/addFriends"
+     });
+@@ -259,7 +295,6 @@
+             }
+         }
+     });
+-    //I`m deleted default data
+     App.Models.UserPage = Backbone.Model.extend({
+         defaults: {
+             img: 'images/question.png'
+@@ -753,6 +788,7 @@
+             'logOut': 'main',
+             'showUsers': 'showUsers',
+             'showFriends': 'showFriends',
++            'showPosts': 'showPosts',
+             'sendEmail': 'sendEmail',
+             'register': 'register',
+             'login': 'login',
+@@ -766,7 +802,7 @@
+                 $('#welcomeBlock').html('').show().append(template('welcome'));
+                 $('#signBut').show();
+                 $('#regBut').show();
+-                $('#posts').hide().html('');
++                $('#postsBlock').hide();
+                 $('#register-block').hide().html('');
+                 $('#login-block').hide().html('');
+                 $('#signOutBut').hide();
+@@ -798,8 +834,8 @@
+         register: function() {
+             userIsValid();
+             if (!friendsView.get('userIsAuthorised')) {
+-                $('#posts').hide().html('');
+-                $('#register-block').show();
++                $('#postsBlock').hide();
++                $('#register-block').html('').show();
+                 $('#login-block').hide().html('');
+                 $('#welcomeBlock').hide();
+                 $('#containerHeader').hide();
+@@ -815,7 +851,7 @@
+             userIsValid();
+             if (!friendsView.get('userIsAuthorised')) {
+                 $('#welcomeBlock').hide();
+-                $('#posts').hide().html('');
++                $('#postsBlock').hide();
+                 $('#containerHeader').hide();
+                 $('#register-block').hide().html('');
+                 $('#login-block').html('').show();
+@@ -831,7 +867,7 @@
+             userIsValid();
+             if (!friendsView.get('userIsAuthorised')) {
+                 $('#welcomeBlock').hide();
+-                $('#posts').hide().html('');
++                $('#postsBlock').hide();
+                 $('#containerHeader').hide();
+                 $('#register-block').hide().html('');
+                 $('#login-block').html('').show();
+@@ -845,6 +881,10 @@
+         },
+         connUser: function(id){
+             App.Functions.showOneUser(id);
++        },
++        showPosts: function() {
++            userIsValid();
++            setTimeout(App.Functions.showPosts, 100);
+         }
+     });
+ 
+Index: app.js
+===================================================================
+--- app.js	(revision 6d7968ca725011b094ad1f7549e7c814bc46e00c)
++++ server.js	(revision )
+@@ -1,0 +1,0 @@
+Index: public/css/style.css
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- public/css/style.css	(revision 6d7968ca725011b094ad1f7549e7c814bc46e00c)
++++ public/css/style.css	(revision )
+@@ -24,7 +24,7 @@
+     background-color: greenyellow;;
+     height: 40px;
+     width: 200px;
+-    margin-top: 10px;
++    margin: 10px auto 0 auto;
+     display: inline-block;
+ }
+ 
+\ No newline at end of file
